@@ -1,53 +1,66 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>BYTEWEBNEST · Teacher</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- CodeMirror -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5/lib/codemirror.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5/theme/material-darker.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5/addon/hint/show-hint.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5/lib/codemirror.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5/mode/xml/xml.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5/mode/css/css.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5/mode/htmlmixed/htmlmixed.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5/addon/edit/closetag.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5/addon/edit/closebrackets.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5/addon/hint/show-hint.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5/addon/hint/html-hint.js"></script>
 
   <style>
     body {
       margin: 0;
       background: #0f0a1a;
-      color: #e8e0ff;
-      font-family: system-ui, sans-serif;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
+      color: #fff;
+      font-family: system-ui;
     }
 
     header {
       padding: 14px;
       text-align: center;
-      font-weight: 600;
-      color: #c09bff;
-      border-bottom: 1px solid #2a1b4d;
+      font-weight: bold;
+      background: linear-gradient(90deg, #7b2ff7, #c09bff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: 20px;
     }
 
-    textarea {
-      flex: 1;
-      width: 100%;
-      background: #0b0814;
-      color: #e8e0ff;
-      border: none;
-      outline: none;
-      padding: 16px;
-      font-family: monospace;
-      font-size: 14px;
-      resize: none;
+    .editor-wrap {
+      padding: 12px;
+    }
+
+    .CodeMirror {
+      height: 60vh;
+      font-size: 15px;
+      border-radius: 10px;
     }
 
     button {
-      background: #7b2ff7;
-      color: #fff;
-      border: none;
-      padding: 14px;
+      margin-top: 10px;
+      width: 100%;
+      padding: 12px;
       font-size: 16px;
+      background: #7b2ff7;
+      border: none;
+      border-radius: 10px;
+      color: white;
       cursor: pointer;
     }
 
     button:hover {
-      background: #6a27d9;
+      background: #9f6bff;
     }
   </style>
 </head>
@@ -55,52 +68,64 @@
 
 <header>BYTEWEBNEST · Live Lesson · Teacher</header>
 
-<textarea id="editor">
-<!-- HTML -->
-<h1>Привет, BYTEWEBNEST</h1>
+<div class="editor-wrap">
+  <textarea id="editor">
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Demo</title>
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      font-family: Arial;
+    }
+    h1 {
+      color: #7b2ff7;
+    }
+  </style>
+</head>
+<body>
 
-<div class="card">
-  <p>Это живой урок</p>
+<h1>Hello BYTEWEBNEST</h1>
+<p>Live coding работает 🚀</p>
+
+</body>
+</html>
+  </textarea>
+
+  <button id="publish">Опубликовать код</button>
 </div>
 
-<!-- CSS -->
-<style>
-  body {
-    background: #0f0a1a;
-    color: #e8e0ff;
-    font-family: system-ui, sans-serif;
-  }
-
-  h1 {
-    color: #c09bff;
-  }
-
-  .card {
-    border: 1px solid #7b2ff7;
-    padding: 16px;
-    border-radius: 10px;
-    margin-top: 20px;
-  }
-</style>
-</textarea>
-
-<button id="publish">Опубликовать</button>
-
 <script>
+  const cm = CodeMirror.fromTextArea(
+    document.getElementById("editor"),
+    {
+      mode: "htmlmixed",
+      theme: "material-darker",
+      lineNumbers: true,
+      autoCloseTags: true,
+      autoCloseBrackets: true,
+      extraKeys: {
+        "Ctrl-Space": "autocomplete",
+        "Tab": "autocomplete"
+      }
+    }
+  )
+
   const ws = new WebSocket("wss://bwn-live-lesson.onrender.com")
-  const editor = document.getElementById("editor")
-  const publishBtn = document.getElementById("publish")
 
   ws.onopen = () => {
-    console.log("Teacher WS connected")
+    console.log("WS connected (teacher)")
   }
 
-  publishBtn.onclick = () => {
+  document.getElementById("publish").onclick = () => {
     ws.send(JSON.stringify({
       type: "publish",
-      lessonId: "default",
+      lessonId: "lesson-1",
       key: "bwn-live-2025",
-      html: editor.value
+      html: cm.getValue()
     }))
   }
 </script>

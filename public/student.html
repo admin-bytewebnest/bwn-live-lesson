@@ -3,76 +3,76 @@
 <head>
   <meta charset="UTF-8">
   <title>BYTEWEBNEST · Student</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
     body {
       margin: 0;
       background: #0f0a1a;
-      color: #e8e0ff;
-      font-family: system-ui, sans-serif;
-      height: 100vh;
+      color: #fff;
+      font-family: system-ui;
+    }
+
+    header {
+      padding: 14px;
+      text-align: center;
+      font-weight: bold;
+      background: linear-gradient(90deg, #7b2ff7, #c09bff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: 20px;
+    }
+
+    .grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 10px;
     }
 
     iframe {
-      border: none;
       width: 100%;
-      height: 100%;
+      height: 70vh;
+      border: 2px solid #7b2ff7;
+      border-radius: 10px;
+      background: #000;
     }
 
-    @media (max-width: 800px) {
-      body {
+    @media (max-width: 900px) {
+      .grid {
         grid-template-columns: 1fr;
-        grid-template-rows: 1fr 1fr;
       }
     }
   </style>
 </head>
 <body>
 
-<iframe id="codeView" title="Код"></iframe>
-<iframe id="preview" title="Результат"></iframe>
+<header>BYTEWEBNEST · Live Lesson · Student</header>
+
+<div class="grid">
+  <iframe id="code"></iframe>
+  <iframe id="preview"></iframe>
+</div>
 
 <script>
+  const codeFrame = document.getElementById("code")
+  const previewFrame = document.getElementById("preview")
+
   const ws = new WebSocket("wss://bwn-live-lesson.onrender.com")
-  const codeView = document.getElementById("codeView")
-  const preview = document.getElementById("preview")
 
   ws.onopen = () => {
     ws.send(JSON.stringify({
       type: "subscribe",
-      lessonId: "default"
+      lessonId: "lesson-1"
     }))
   }
 
-  ws.onmessage = (e) => {
+  ws.onmessage = e => {
     const msg = JSON.parse(e.data)
-
     if (msg.type === "update") {
-      // Левое окно — код (как текст)
-      codeView.srcdoc = `
-<!DOCTYPE html>
-<html>
-<body style="background:#0b0814;color:#e8e0ff;font-family:monospace;padding:16px;white-space:pre-wrap;">
-${escapeHtml(msg.html)}
-</body>
-</html>
-      `
-
-      // Правое окно — результат (живой HTML)
-      preview.srcdoc = `
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-</head>
-<body>
-${msg.html}
-</body>
-</html>
-      `
+      // код
+      codeFrame.srcdoc = `<pre style="color:#e8e0ff; padding:10px; font-size:14px;">${escapeHtml(msg.html)}</pre>`
+      // результат
+      previewFrame.srcdoc = msg.html
     }
   }
 
