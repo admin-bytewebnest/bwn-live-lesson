@@ -4,20 +4,27 @@
   <meta charset="UTF-8" />
   <title>BYTEWEBNEST · Teacher</title>
 
-  <!-- CodeMirror -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5/lib/codemirror.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5/theme/material-darker.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5/addon/hint/show-hint.css">
+  <!-- CodeMirror core -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
 
-  <script src="https://cdn.jsdelivr.net/npm/codemirror@5/lib/codemirror.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/codemirror@5/mode/xml/xml.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/codemirror@5/mode/css/css.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/codemirror@5/mode/htmlmixed/htmlmixed.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/codemirror@5/addon/edit/closetag.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/codemirror@5/addon/edit/closebrackets.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/codemirror@5/addon/hint/show-hint.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/codemirror@5/addon/hint/html-hint.js"></script>
+  <!-- MODES -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+
+  <!-- EDIT -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closetag.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+
+  <!-- HINTS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/html-hint.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/css-hint.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/xml-hint.min.js"></script>
 
   <style>
     body {
@@ -48,9 +55,9 @@
     }
 
     button {
-      margin-top: 10px;
+      margin-top: 12px;
       width: 100%;
-      padding: 12px;
+      padding: 14px;
       font-size: 16px;
       background: #7b2ff7;
       border: none;
@@ -69,7 +76,7 @@
 <header>BYTEWEBNEST · Live Lesson · Teacher</header>
 
 <div class="editor-wrap">
-  <textarea id="editor">
+<textarea id="editor">
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -81,6 +88,7 @@
       color: #fff;
       font-family: Arial;
     }
+
     h1 {
       color: #7b2ff7;
     }
@@ -93,26 +101,39 @@
 
 </body>
 </html>
-  </textarea>
+</textarea>
 
-  <button id="publish">Опубликовать код</button>
+<button id="publish">Опубликовать код</button>
 </div>
 
 <script>
-  const cm = CodeMirror.fromTextArea(
-    document.getElementById("editor"),
-    {
-      mode: "htmlmixed",
-      theme: "material-darker",
-      lineNumbers: true,
-      autoCloseTags: true,
-      autoCloseBrackets: true,
-      extraKeys: {
-        "Ctrl-Space": "autocomplete",
-        "Tab": "autocomplete"
+  const editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
+    mode: "htmlmixed",
+    theme: "material-darker",
+    lineNumbers: true,
+    autoCloseTags: true,
+    autoCloseBrackets: true,
+    extraKeys: {
+      "Ctrl-Space": "autocomplete",
+      "Tab": cm => {
+        if (cm.somethingSelected()) {
+          cm.indentSelection("add")
+        } else {
+          cm.replaceSelection("  ")
+        }
       }
     }
-  )
+  })
+
+  // 🔥 АВТОПОДСКАЗКИ ПРИ ВВОДЕ
+  editor.on("inputRead", (cm, change) => {
+    if (
+      change.text[0].match(/[\w<]/) &&
+      !cm.state.completionActive
+    ) {
+      cm.showHint({ completeSingle: false })
+    }
+  })
 
   const ws = new WebSocket("wss://bwn-live-lesson.onrender.com")
 
@@ -125,7 +146,7 @@
       type: "publish",
       lessonId: "lesson-1",
       key: "bwn-live-2025",
-      html: cm.getValue()
+      html: editor.getValue()
     }))
   }
 </script>
