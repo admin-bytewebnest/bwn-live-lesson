@@ -1,20 +1,44 @@
 import http from "http";
 import { WebSocketServer } from "ws";
 
+/**
+ * =========================
+ * CONFIG
+ * =========================
+ */
 const PORT = process.env.PORT || 3000;
 const BWN_KEY = process.env.BWN_KEY || "bwn-live-2025";
 
+/**
+ * =========================
+ * HTTP SERVER
+ * =========================
+ */
 const server = http.createServer((req, res) => {
-  res.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
-  res.end("BYTEWEBNEST Live Lesson server is running ✅");
+  res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8" });
+  res.end("BYTEWEBNEST · Live Lesson Server is running ✅");
 });
 
+/**
+ * =========================
+ * WEBSOCKET SERVER
+ * =========================
+ */
 const wss = new WebSocketServer({ server });
 
-// простая "комната" по lessonId
-const lessons = new Map(); // lessonId -> lastHTML
+/**
+ * lessonId -> lastHTML
+ */
+const lessons = new Map();
 
+/**
+ * =========================
+ * CONNECTION HANDLING
+ * =========================
+ */
 wss.on("connection", (ws) => {
+  ws.lessonId = null;
+
   ws.on("message", (raw) => {
     let msg;
     try {
@@ -23,31 +47,84 @@ wss.on("connection", (ws) => {
       return;
     }
 
-    // msg: {type, lessonId, key?, html?}
     const lessonId = msg.lessonId || "default";
 
+    /**
+     * =========================
+     * SUBSCRIBE (ученик)
+     * =========================
+     */
+    if (msg.type === "subscribe") {
+      ws.lessonId = lessonId;
+
+      ws.send(
+        JSON.stringify({
+          type: "update",
+          lessonId,
+          html: lessons.get(lessonId) || "",
+        })
+      );
+    }
+
+    /**
+     * =========================
+     * PUBLISH (учитель)
+     * =========================
+     */
     if (msg.type === "publish") {
-      // защита: публиковать может только учитель
       if (msg.key !== BWN_KEY) {
-        ws.send(JSON.stringify({ type: "error", message: "Bad key" }));
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            message: "Unauthorized publish attempt",
+          })
+        );
         return;
       }
+
       lessons.set(lessonId, msg.html || "");
-      // рассылаем всем
+
+      // Рассылаем ТОЛЬКО подписанным на этот урок
       wss.clients.forEach((client) => {
-        if (client.readyState === 1) {
-          client.send(JSON.stringify({ type: "update", lessonId, html: lessons.get(lessonId) }));
+        if (
+          client.readyState === 1 &&
+          client.lessonId === lessonId
+        ) {
+          client.send(
+            JSON.stringify({
+              type: "update",
+              lessonId,
+              html: lessons.get(lessonId),
+            })
+          );
         }
       });
     }
+  });
 
-    if (msg.type === "subscribe") {
-      // сразу отдаём последнее состояние
-      ws.send(JSON.stringify({ type: "update", lessonId, html: lessons.get(lessonId) || "" }));
-    }
+  ws.on("close", () => {
+    ws.lessonId = null;
   });
 });
 
+/**
+ * =========================
+ * HEARTBEAT (очень важно для Railway)
+ * =========================
+ */
+setInterval(() => {
+  wss.clients.forEach((ws) => {
+    if (ws.readyState === 1) {
+      ws.ping();
+    }
+  });
+}, 20000);
+
+/**
+ * =========================
+ * START SERVER
+ * =========================
+ */
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 BYTEWEBNEST Live Lesson running on port ${PORT}`);
 });
