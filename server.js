@@ -10,69 +10,65 @@ const __dirname = path.dirname(__filename)
 const PORT = process.env.PORT || 3000
 const BWN_KEY = process.env.BWN_KEY
 
-// ================= HTTP =================
-const server = http.createServer((req, res) => {
+const server = http.createServer((req,res)=>{
   const filePath = path.join(
     __dirname,
     "public",
     req.url === "/" ? "student.html" : req.url
   )
 
-  fs.readFile(filePath, (err, content) => {
-    if (err) {
+  fs.readFile(filePath,(err,content)=>{
+    if(err){
       res.writeHead(404)
-      res.end("404")
-      return
+      return res.end("404")
     }
-    res.writeHead(200)
     res.end(content)
   })
 })
 
-// ================= WS =================
 const wss = new WebSocketServer({ server })
 const lessons = new Map()
 
-wss.on("connection", ws => {
-  ws.on("message", raw => {
+wss.on("connection", ws=>{
+  ws.on("message", raw=>{
     let msg
     try { msg = JSON.parse(raw) } catch { return }
 
     const id = msg.lessonId || "lesson-1"
 
-    if (msg.type === "publish") {
-      if (msg.key !== BWN_KEY) return
+    if(msg.type==="publish"){
+      if(msg.key !== BWN_KEY) return
       lessons.set(id, msg.html)
 
-      wss.clients.forEach(c => {
-        if (c.readyState === 1) {
+      wss.clients.forEach(c=>{
+        if(c.readyState===1){
           c.send(JSON.stringify({
-            type: "update",
-            lessonId: id,
-            html: msg.html
+            type:"update",
+            lessonId:id,
+            html:msg.html
           }))
         }
       })
     }
 
-    if (msg.type === "cursor") {
-      wss.clients.forEach(c => {
-        if (c.readyState === 1) {
+    if(msg.type==="cursor"){
+      wss.clients.forEach(c=>{
+        if(c.readyState===1){
           c.send(JSON.stringify(msg))
         }
       })
     }
 
-    if (msg.type === "subscribe") {
+    if(msg.type==="subscribe"){
       ws.send(JSON.stringify({
-        type: "update",
-        lessonId: id,
+        type:"update",
+        lessonId:id,
         html: lessons.get(id) || ""
       }))
     }
   })
 })
 
-server.listen(PORT, () =>
+server.listen(PORT, ()=> {
   console.log("🚀 BYTEWEBNEST Live Lesson running")
-)
+})

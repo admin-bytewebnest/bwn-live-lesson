@@ -16,18 +16,33 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/html-hint.min.js"></script>
 
 <style>
-body { margin:0; background:#0f0a1a; color:#fff; font-family:system-ui }
-header {
-  padding:14px; text-align:center; font-weight:bold;
-  background:linear-gradient(90deg,#7b2ff7,#c09bff);
-  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+body {
+  margin:0;
+  background:#0f0a1a;
+  color:#fff;
+  font-family:system-ui;
 }
-.CodeMirror { height:65vh; border-radius:10px }
+header {
+  padding:14px;
+  text-align:center;
+  font-weight:bold;
+  background:linear-gradient(90deg,#7b2ff7,#c09bff);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.CodeMirror {
+  height:60vh;
+  border-radius:10px;
+}
 button {
-  margin:12px; width:calc(100% - 24px);
-  padding:14px; background:#7b2ff7;
-  border:none; border-radius:10px;
-  color:#fff; cursor:pointer;
+  margin:12px;
+  width:calc(100% - 24px);
+  padding:14px;
+  background:#7b2ff7;
+  border:none;
+  border-radius:10px;
+  color:#fff;
+  cursor:pointer;
 }
 </style>
 </head>
@@ -38,15 +53,8 @@ button {
 <textarea id="editor">
 <!DOCTYPE html>
 <html>
-<head>
-<style>
-body { background:#111; color:#fff }
-h1 { color:#7b2ff7 }
-</style>
-</head>
 <body>
 <h1>Hello BYTEWEBNEST</h1>
-<p>Live coding работает 🚀</p>
 </body>
 </html>
 </textarea>
@@ -54,7 +62,7 @@ h1 { color:#7b2ff7 }
 <button id="publish">Опубликовать (fallback)</button>
 
 <script>
-const editor = CodeMirror.fromTextArea(editorEl = document.getElementById("editor"), {
+const editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
   mode:"htmlmixed",
   theme:"material-darker",
   lineNumbers:true,
@@ -64,34 +72,39 @@ const editor = CodeMirror.fromTextArea(editorEl = document.getElementById("edito
 
 const ws = new WebSocket("wss://bwn-live-lesson.onrender.com")
 
-function debounce(fn, d=200){
-  let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),d) }
+function debounce(fn, delay=250) {
+  let t
+  return function() {
+    clearTimeout(t)
+    t = setTimeout(fn, delay)
+  }
 }
 
-const publish = debounce(()=>{
-  if(ws.readyState!==1) return
+const autoPublish = debounce(() => {
+  if (ws.readyState !== WebSocket.OPEN) return
   ws.send(JSON.stringify({
     type:"publish",
     lessonId:"lesson-1",
     key:"bwn-live-2025",
-    html:editor.getValue()
+    html: editor.getValue()
   }))
 })
 
-editor.on("change", publish)
+editor.on("change", autoPublish)
 
-editor.on("cursorActivity", ()=>{
-  const s = editor.listSelections()[0]
-  if(!s || ws.readyState!==1) return
+editor.on("cursorActivity", () => {
+  const sel = editor.listSelections()[0]
+  if (!sel || ws.readyState !== WebSocket.OPEN) return
+
   ws.send(JSON.stringify({
     type:"cursor",
     lessonId:"lesson-1",
-    from:s.anchor,
-    to:s.head
+    from: sel.anchor,
+    to: sel.head
   }))
 })
 
-publishBtn.onclick = publish
+document.getElementById("publish").onclick = autoPublish
 </script>
 </body>
 </html>
