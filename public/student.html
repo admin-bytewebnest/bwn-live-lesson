@@ -22,6 +22,35 @@
       font-size: 20px;
     }
 
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 0;
+    }
+
+    .controls button {
+      background: #1a102a;
+      border: 1px solid #7b2ff7;
+      color: #c09bff;
+      font-size: 18px;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .controls button:hover {
+      background: #7b2ff7;
+      color: #fff;
+    }
+
+    .controls span {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
     .grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -48,6 +77,12 @@
 
 <header>BYTEWEBNEST · Live Lesson · Student</header>
 
+<div class="controls">
+  <button id="fontMinus">−</button>
+  <span>Размер кода</span>
+  <button id="fontPlus">+</button>
+</div>
+
 <div class="grid">
   <iframe id="code"></iframe>
   <iframe id="preview"></iframe>
@@ -59,6 +94,23 @@
 
   const ws = new WebSocket("wss://bwn-live-lesson.onrender.com")
 
+  // 🔠 управление размером
+  const baseFontSize = 14
+  let currentFontSize = baseFontSize
+  let lastHTML = ""
+
+  function renderCode(html) {
+    codeFrame.srcdoc = `
+      <pre style="
+        color:#e8e0ff;
+        padding:10px;
+        font-size:${currentFontSize}px;
+        line-height:1.5;
+        white-space:pre-wrap;
+      ">${escapeHtml(html)}</pre>
+    `
+  }
+
   ws.onopen = () => {
     ws.send(JSON.stringify({
       type: "subscribe",
@@ -69,10 +121,21 @@
   ws.onmessage = e => {
     const msg = JSON.parse(e.data)
     if (msg.type === "update") {
-      // код
-      codeFrame.srcdoc = `<pre style="color:#e8e0ff; padding:10px; font-size:14px;">${escapeHtml(msg.html)}</pre>`
-      // результат
-      previewFrame.srcdoc = msg.html
+      lastHTML = msg.html
+      renderCode(lastHTML)
+      previewFrame.srcdoc = lastHTML
+    }
+  }
+
+  document.getElementById("fontPlus").onclick = () => {
+    currentFontSize += 2
+    renderCode(lastHTML)
+  }
+
+  document.getElementById("fontMinus").onclick = () => {
+    if (currentFontSize > baseFontSize) {
+      currentFontSize -= 2
+      renderCode(lastHTML)
     }
   }
 
