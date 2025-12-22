@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>BYTEWEBNEST · Live Lesson · Student</title>
+<title>BYTEWEBNEST · Student</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
@@ -12,129 +12,153 @@
 
 <style>
 :root {
-  --bg-main: #0b0714;
-  --bg-panel: rgba(20, 12, 35, 0.75);
+  --bg-main: #0f0a1a;
+  --panel-code: rgba(20, 12, 35, 0.85);
+  --panel-preview: rgba(12, 12, 18, 0.95);
   --accent: #7b2ff7;
-  --accent-soft: #c09bff;
-  --border-soft: rgba(123, 47, 247, 0.35);
+  --accent-soft: rgba(123,47,247,.25);
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
-  margin: 0;
-  height: 100vh;
-  background:
-    radial-gradient(1200px 600px at 10% -10%, rgba(123,47,247,0.15), transparent),
-    radial-gradient(800px 400px at 90% 10%, rgba(192,155,255,0.12), transparent),
-    var(--bg-main);
-  color: #fff;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont;
-  overflow: hidden;
+  margin:0;
+  height:100vh;
+  background: radial-gradient(circle at top, #1b1033, #0f0a1a 60%);
+  color:#fff;
+  font-family: system-ui;
+  overflow:hidden;
 }
 
-/* ===== TOP BAR ===== */
-.header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  height: 56px;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  align-items: center;
-  padding: 0 16px;
-  background: var(--bg-panel);
-  backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--border-soft);
+header {
+  height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:600;
+  letter-spacing:.5px;
+  background: linear-gradient(90deg,#7b2ff7,#c09bff);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
 }
 
-.header-title {
-  font-weight: 600;
-  letter-spacing: 0.4px;
-  background: linear-gradient(90deg, var(--accent), var(--accent-soft));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-
-  grid-column: 1 /2;
+/* ===== Layout ===== */
+.workspace {
+  height: calc(100vh - 52px);
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:14px;
+  padding:14px;
 }
 
+/* ===== Panels ===== */
+.panel {
+  display:flex;
+  flex-direction:column;
+  border-radius:14px;
+  overflow:hidden;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 20px 60px rgba(0,0,0,.4);
+}
+
+.panel.code {
+  background: var(--panel-code);
+  border:1px solid var(--accent-soft);
+}
+
+.panel.preview {
+  background: var(--panel-preview);
+  border:1px solid rgba(255,255,255,.08);
+}
+
+/* ===== Panel Header ===== */
+.panel-header {
+  height:42px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 14px;
+  font-size:13px;
+  letter-spacing:.4px;
+  background: rgba(0,0,0,.25);
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+
+.panel-header span {
+  opacity:.85;
+}
+
+/* ===== Controls ===== */
 .controls {
-  display: flex;
-  gap: 8px;
-  grid-column: 2 / 3;
-  justify-self: end;
+  display:flex;
+  gap:8px;
 }
 
 .controls button {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  border: 1px solid var(--border-soft);
-  background: rgba(123,47,247,0.12);
-  color: var(--accent-soft);
-  font-size: 18px;
-  cursor: pointer;
-  transition: all .2s ease;
+  width:28px;
+  height:28px;
+  border-radius:6px;
+  background:#1a102a;
+  border:1px solid var(--accent-soft);
+  color:#c09bff;
+  cursor:pointer;
 }
 
 .controls button:hover {
   background: var(--accent);
-  color: #fff;
+  color:#fff;
 }
 
-/* ===== MAIN LAYOUT ===== */
-.main {
-  height: calc(100vh - 56px);
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-}
-
-/* ===== CODE ===== */
-.code-wrap {
-  border-right: 1px solid var(--border-soft);
-  background: rgba(10,6,18,0.9);
+/* ===== Content ===== */
+.panel-body {
+  flex:1;
 }
 
 .CodeMirror {
-  height: 100%;
-  font-size: 14px;
+  height:100%;
+  background: transparent;
+  font-size:14px;
 }
 
-/* ===== PREVIEW ===== */
-.preview-wrap {
-  background: #000;
-}
-
-.preview-wrap iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
+iframe {
+  width:100%;
+  height:100%;
+  border:none;
+  background:#000;
 }
 </style>
 </head>
 
 <body>
 
-<!-- HEADER -->
-<div class="header">
-  <div class="header-title">BYTEWEBNEST · Live Lesson</div>
-  <div class="controls">
-    <button id="fontMinus">−</button>
-    <button id="fontPlus">+</button>
-  </div>
-</div>
+<header>BYTEWEBNEST · Live Lesson · Student</header>
 
-<!-- MAIN -->
-<div class="main">
-  <div class="code-wrap">
-    <textarea id="code"></textarea>
+<div class="workspace">
+
+  <!-- CODE -->
+  <div class="panel code">
+    <div class="panel-header">
+      <span>Live Coding</span>
+      <div class="controls">
+        <button id="fontMinus">−</button>
+        <button id="fontPlus">+</button>
+      </div>
+    </div>
+    <div class="panel-body">
+      <textarea id="code"></textarea>
+    </div>
   </div>
 
-  <div class="preview-wrap">
-    <iframe id="preview"></iframe>
+  <!-- PREVIEW -->
+  <div class="panel preview">
+    <div class="panel-header">
+      <span>Code Preview</span>
+    </div>
+    <div class="panel-body">
+      <iframe id="preview"></iframe>
+    </div>
   </div>
+
 </div>
 
 <script>
@@ -146,11 +170,11 @@ let currentFontSize = baseFontSize
 const codeMirror = CodeMirror.fromTextArea(
   document.getElementById("code"),
   {
-    mode: "htmlmixed",
-    theme: "material-darker",
-    lineNumbers: true,
-    readOnly: true,
-    cursorBlinkRate: 0
+    mode:"htmlmixed",
+    theme:"material-darker",
+    lineNumbers:true,
+    readOnly:true,
+    cursorBlinkRate:0
   }
 )
 
@@ -176,10 +200,7 @@ fontMinus.onclick = () => {
 const ws = new WebSocket("wss://bwn-live-lesson.onrender.com")
 
 ws.onopen = () => {
-  ws.send(JSON.stringify({
-    type: "subscribe",
-    lessonId: "lesson-1"
-  }))
+  ws.send(JSON.stringify({ type:"subscribe", lessonId:"lesson-1" }))
 }
 
 ws.onmessage = e => {
