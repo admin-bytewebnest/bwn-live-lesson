@@ -103,7 +103,7 @@
 </html>
 </textarea>
 
-<button id="publish">Опубликовать код</button>
+<button id="publish">Опубликовать код (вручную)</button>
 </div>
 
 <script>
@@ -125,7 +125,7 @@
     }
   })
 
-  // 🔥 АВТОПОДСКАЗКИ ПРИ ВВОДЕ
+  // 🔥 Подсказки при вводе
   editor.on("inputRead", (cm, change) => {
     if (
       change.text[0].match(/[\w<]/) &&
@@ -141,6 +141,32 @@
     console.log("WS connected (teacher)")
   }
 
+  // ⏱ debounce — защита от спама
+  function debounce(fn, delay = 250) {
+    let timer
+    return (...args) => {
+      clearTimeout(timer)
+      timer = setTimeout(() => fn(...args), delay)
+    }
+  }
+
+  const autoPublish = debounce(() => {
+    if (ws.readyState !== WebSocket.OPEN) return
+
+    ws.send(JSON.stringify({
+      type: "publish",
+      lessonId: "lesson-1",
+      key: "bwn-live-2025",
+      html: editor.getValue()
+    }))
+  }, 250)
+
+  // 🚀 LIVE-обновление при печати
+  editor.on("change", () => {
+    autoPublish()
+  })
+
+  // 🟢 Ручная публикация (fallback)
   document.getElementById("publish").onclick = () => {
     ws.send(JSON.stringify({
       type: "publish",
@@ -153,4 +179,3 @@
 
 </body>
 </html>
- 
