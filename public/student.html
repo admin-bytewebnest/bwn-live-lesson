@@ -11,65 +11,141 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
 
 <style>
+:root {
+  --bg-main: #0b0814;
+  --bg-panel: rgba(255,255,255,0.03);
+  --border-glass: rgba(255,255,255,0.08);
+  --neon: #7b2ff7;
+  --neon-soft: rgba(123,47,247,.35);
+  --text-main: #f5f3ff;
+  --text-muted: #a89ecb;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin:0;
-  background:#0f0a1a;
-  color:#fff;
-  font-family:system-ui;
+  min-height:100vh;
+  background:
+    radial-gradient(1200px 600px at 20% -10%, rgba(123,47,247,.15), transparent 60%),
+    radial-gradient(800px 500px at 90% 10%, rgba(192,155,255,.08), transparent 60%),
+    var(--bg-main);
+  color:var(--text-main);
+  font-family: system-ui, -apple-system, Segoe UI, sans-serif;
 }
+
+/* ===== HEADER ===== */
 header {
-  padding:14px;
+  padding:18px 20px;
   text-align:center;
-  font-weight:bold;
-  background:linear-gradient(90deg,#7b2ff7,#c09bff);
+  font-weight:600;
+  letter-spacing:.6px;
+  font-size:18px;
+  background:linear-gradient(90deg, #7b2ff7, #c09bff);
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
 }
+
+/* ===== TOP BAR ===== */
 .controls {
   display:flex;
   justify-content:center;
   align-items:center;
-  gap:12px;
-  padding:6px 0;
+  gap:14px;
+  padding:10px 0 6px;
 }
+
+.controls span {
+  font-size:13px;
+  color:var(--text-muted);
+}
+
 .controls button {
-  background:#1a102a;
-  border:1px solid #7b2ff7;
-  color:#c09bff;
+  width:38px;
+  height:38px;
+  border-radius:10px;
+  border:1px solid var(--border-glass);
+  background:var(--bg-panel);
+  color:var(--text-main);
   font-size:18px;
-  width:36px;
-  height:36px;
-  border-radius:8px;
   cursor:pointer;
+  transition:.25s;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.02),
+    0 0 0 rgba(123,47,247,0);
 }
+
 .controls button:hover {
-  background:#7b2ff7;
+  border-color:var(--neon);
+  box-shadow:0 0 18px var(--neon-soft);
   color:#fff;
 }
-.controls span {
-  font-size:14px;
-  opacity:.8;
-}
+
+/* ===== LAYOUT ===== */
 .grid {
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:10px;
-  padding:10px;
+  gap:14px;
+  padding:14px;
 }
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns:1fr;
+  }
+}
+
+/* ===== PANELS ===== */
+.panel {
+  background:var(--bg-panel);
+  border:1px solid var(--border-glass);
+  border-radius:14px;
+  overflow:hidden;
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 10px 40px rgba(0,0,0,.45),
+    inset 0 0 0 1px rgba(255,255,255,.02);
+}
+
+/* ===== CODEMIRROR ===== */
+.CodeMirror {
+  height:70vh;
+  background:transparent;
+  font-size:14px;
+}
+
+.CodeMirror-gutters {
+  background:transparent;
+  border-right:1px solid rgba(255,255,255,.05);
+}
+
+.CodeMirror-linenumber {
+  color:#6f63a6;
+}
+
+/* ===== PREVIEW ===== */
 iframe {
   width:100%;
   height:70vh;
-  border:2px solid #7b2ff7;
-  border-radius:10px;
+  border:none;
+  background:#000;
 }
-.CodeMirror {
-  height:70vh;
-  border-radius:10px;
+
+/* ===== FOOT NOTE ===== */
+.footer-note {
+  text-align:center;
+  font-size:11px;
+  color:#6d639a;
+  padding:6px 0 12px;
+  opacity:.7;
 }
 </style>
 </head>
 
 <body>
+
 <header>BYTEWEBNEST · Live Lesson · Student</header>
 
 <div class="controls">
@@ -79,8 +155,17 @@ iframe {
 </div>
 
 <div class="grid">
-  <textarea id="code"></textarea>
-  <iframe id="preview"></iframe>
+  <div class="panel">
+    <textarea id="code"></textarea>
+  </div>
+
+  <div class="panel">
+    <iframe id="preview"></iframe>
+  </div>
+</div>
+
+<div class="footer-note">
+  When conversation matters · BYTEWEBNEST CONNECT
 </div>
 
 <script>
@@ -104,16 +189,14 @@ function applyFontSize() {
   codeMirror.getWrapperElement().style.fontSize = currentFontSize + "px"
   codeMirror.refresh()
 }
-
 applyFontSize()
 
-document.getElementById("fontPlus").onclick = () => {
+fontPlus.onclick = () => {
   currentFontSize += 2
   applyFontSize()
 }
-
-document.getElementById("fontMinus").onclick = () => {
-  if (currentFontSize > baseFontSize) {
+fontMinus.onclick = () => {
+  if(currentFontSize > baseFontSize){
     currentFontSize -= 2
     applyFontSize()
   }
@@ -131,17 +214,18 @@ ws.onopen = () => {
 ws.onmessage = e => {
   const msg = JSON.parse(e.data)
 
-  if (msg.type === "update") {
+  if(msg.type === "update"){
     codeMirror.setValue(msg.html)
     previewFrame.srcdoc = msg.html
     applyFontSize()
   }
 
-  if (msg.type === "cursor") {
+  if(msg.type === "cursor"){
     codeMirror.setSelection(msg.from, msg.to)
-    codeMirror.scrollIntoView(msg.from, 100)
+    codeMirror.scrollIntoView(msg.from, 120)
   }
 }
 </script>
+
 </body>
 </html>
