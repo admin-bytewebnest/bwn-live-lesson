@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>BYTEWEBNEST · Teacher</title>
 
   <!-- CodeMirror core -->
@@ -14,6 +15,7 @@
   <!-- MODES -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
 
   <!-- EDIT -->
@@ -22,6 +24,7 @@
 
   <!-- HINTS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/anyword-hint.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/html-hint.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/css-hint.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/xml-hint.min.js"></script>
@@ -33,50 +36,85 @@
       color: #fff;
       font-family: system-ui;
     }
-
     header {
       padding: 14px;
       text-align: center;
-      font-weight: bold;
+      font-weight: 700;
       background: linear-gradient(90deg, #7b2ff7, #c09bff);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      font-size: 20px;
+      font-size: 18px;
     }
-
-    .editor-wrap {
+    .wrap {
       padding: 12px;
+      max-width: 1100px;
+      margin: 0 auto;
     }
-
-    .CodeMirror {
-      height: 60vh;
-      font-size: 15px;
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin: 10px 0 12px;
+      flex-wrap: wrap;
+    }
+    .pill {
+      padding: 8px 10px;
+      border: 1px solid rgba(123,47,247,.6);
       border-radius: 10px;
+      background: rgba(26,16,42,.6);
+      color: #e8e0ff;
+      font-size: 13px;
     }
-
+    .status-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      margin-right: 8px;
+      background: #ff4d4d;
+      box-shadow: 0 0 10px rgba(255,77,77,.6);
+      vertical-align: -1px;
+    }
+    .status-dot.ok {
+      background: #2bd576;
+      box-shadow: 0 0 10px rgba(43,213,118,.6);
+    }
+    .CodeMirror {
+      height: 65vh;
+      font-size: 15px;
+      border-radius: 12px;
+      border: 1px solid rgba(123,47,247,.35);
+      overflow: hidden;
+    }
     button {
-      margin-top: 12px;
       width: 100%;
       padding: 14px;
       font-size: 16px;
       background: #7b2ff7;
       border: none;
-      border-radius: 10px;
+      border-radius: 12px;
       color: white;
       cursor: pointer;
     }
-
-    button:hover {
-      background: #9f6bff;
-    }
+    button:hover { background: #9f6bff; }
   </style>
 </head>
-<body>
 
+<body>
 <header>BYTEWEBNEST · Live Lesson · Teacher</header>
 
-<div class="editor-wrap">
-<textarea id="editor">
+<div class="wrap">
+  <div class="toolbar">
+    <div class="pill">
+      <span id="dot" class="status-dot"></span>
+      <span id="wsStatus">WS: connecting…</span>
+    </div>
+    <div class="pill">Lesson: <b id="lessonView">lesson-1</b></div>
+    <div class="pill">Авто-публикация: <b>ON</b> (≈ 0.25s)</div>
+    <div class="pill">Курсор/выделение: <b>ON</b> (≈ 0.06s)</div>
+  </div>
+
+  <textarea id="editor">
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -87,95 +125,191 @@
       background: #111;
       color: #fff;
       font-family: Arial;
+      padding: 24px;
     }
-
-    h1 {
-      color: #7b2ff7;
+    h1 { color: #7b2ff7; }
+    .card {
+      border: 1px solid rgba(123,47,247,.5);
+      border-radius: 12px;
+      padding: 16px;
+      background: rgba(26,16,42,.35);
     }
   </style>
 </head>
 <body>
-
-<h1>Hello BYTEWEBNEST</h1>
-<p>Live coding работает 🚀</p>
-
+  <h1>Hello BYTEWEBNEST</h1>
+  <div class="card">
+    <p>Live coding работает 🚀</p>
+  </div>
 </body>
 </html>
-</textarea>
+  </textarea>
 
-<button id="publish">Опубликовать код (вручную)</button>
+  <button id="publish">Опубликовать сейчас (форс)</button>
 </div>
 
 <script>
+  // ====== CONFIG ======
+  const WS_URL  = "wss://bwn-live-lesson.onrender.com/ws";
+  const LESSON_ID = "lesson-1";
+  const TEACHER_KEY = "bwn-live-2025"; // должен совпадать с BWN_KEY на сервере
+
+  document.getElementById("lessonView").textContent = LESSON_ID;
+
+  // ====== CodeMirror ======
   const editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
     mode: "htmlmixed",
     theme: "material-darker",
     lineNumbers: true,
     autoCloseTags: true,
     autoCloseBrackets: true,
+    indentUnit: 2,
+    tabSize: 2,
     extraKeys: {
       "Ctrl-Space": "autocomplete",
-      "Tab": cm => {
-        if (cm.somethingSelected()) {
-          cm.indentSelection("add")
-        } else {
-          cm.replaceSelection("  ")
-        }
+      "Tab": (cm) => {
+        if (cm.somethingSelected()) cm.indentSelection("add");
+        else cm.replaceSelection("  ");
       }
     }
-  })
+  });
 
-  // 🔥 Подсказки при вводе
+  // Автоподсказки при вводе (HTML/CSS/XML + запасной anyword)
+  function smartHint(cm) {
+    try {
+      const token = cm.getTokenAt(cm.getCursor());
+      const mode = (token && token.state && token.state.localMode && token.state.localMode.mode && token.state.localMode.mode.name) || "";
+
+      // Внутри <style> чаще всего будет css
+      if (mode.includes("css")) {
+        cm.showHint({ hint: CodeMirror.hint.css, completeSingle: false });
+        return;
+      }
+
+      // HTML / XML
+      cm.showHint({ hint: CodeMirror.hint.html, completeSingle: false });
+    } catch {
+      cm.showHint({ hint: CodeMirror.hint.anyword, completeSingle: false });
+    }
+  }
+
   editor.on("inputRead", (cm, change) => {
-    if (
-      change.text[0].match(/[\w<]/) &&
-      !cm.state.completionActive
-    ) {
-      cm.showHint({ completeSingle: false })
+    const ch = (change.text && change.text[0]) ? change.text[0] : "";
+    if (/[\w<\.\-:#]/.test(ch) && !cm.state.completionActive) {
+      smartHint(cm);
     }
-  })
+  });
 
-  const ws = new WebSocket("wss://bwn-live-lesson.onrender.com")
+  // ====== WS connect + reconnect ======
+  const dot = document.getElementById("dot");
+  const wsStatus = document.getElementById("wsStatus");
 
-  ws.onopen = () => {
-    console.log("WS connected (teacher)")
+  let ws;
+  let reconnectTimer = null;
+
+  function setStatus(ok, text) {
+    wsStatus.textContent = text;
+    dot.classList.toggle("ok", !!ok);
   }
 
-  // ⏱ debounce — защита от спама
-  function debounce(fn, delay = 250) {
-    let timer
-    return (...args) => {
-      clearTimeout(timer)
-      timer = setTimeout(() => fn(...args), delay)
-    }
+  function connect() {
+    setStatus(false, "WS: connecting…");
+    ws = new WebSocket(WS_URL);
+
+    ws.onopen = () => setStatus(true, "WS: connected ✅");
+
+    ws.onclose = () => {
+      setStatus(false, "WS: disconnected…");
+      if (!reconnectTimer) {
+        reconnectTimer = setTimeout(() => {
+          reconnectTimer = null;
+          connect();
+        }, 1200);
+      }
+    };
+
+    ws.onerror = () => setStatus(false, "WS: error…");
   }
 
-  const autoPublish = debounce(() => {
-    if (ws.readyState !== WebSocket.OPEN) return
+  connect();
 
-    ws.send(JSON.stringify({
-      type: "publish",
-      lessonId: "lesson-1",
-      key: "bwn-live-2025",
-      html: editor.getValue()
-    }))
-  }, 250)
+  function sendSafe(payload) {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return false;
+    ws.send(JSON.stringify(payload));
+    return true;
+  }
 
-  // 🚀 LIVE-обновление при печати
+  // ====== LIVE SEND: CODE (debounce) ======
+  let codeTimer = null;
+  function sendCodeDebounced() {
+    clearTimeout(codeTimer);
+    codeTimer = setTimeout(() => {
+      sendSafe({
+        type: "code",
+        lessonId: LESSON_ID,
+        key: TEACHER_KEY,
+        html: editor.getValue()
+      });
+    }, 250);
+  }
+
   editor.on("change", () => {
-    autoPublish()
-  })
+    sendCodeDebounced();
+  });
 
-  // 🟢 Ручная публикация (fallback)
-  document.getElementById("publish").onclick = () => {
-    ws.send(JSON.stringify({
-      type: "publish",
-      lessonId: "lesson-1",
-      key: "bwn-live-2025",
-      html: editor.getValue()
-    }))
+  // ====== LIVE SEND: CURSOR/SELECTION (throttle) ======
+  let lastCursorSentAt = 0;
+  function sendCursorThrottled() {
+    const now = Date.now();
+    if (now - lastCursorSentAt < 60) return;
+    lastCursorSentAt = now;
+
+    const sels = editor.listSelections();
+    if (!sels || !sels[0]) return;
+
+    // берём первое выделение (обычно хватает)
+    const from = sels[0].from();
+    const to   = sels[0].to();
+
+    sendSafe({
+      type: "cursor",
+      lessonId: LESSON_ID,
+      key: TEACHER_KEY,
+      from: { line: from.line, ch: from.ch },
+      to:   { line: to.line,   ch: to.ch }
+    });
   }
-</script>
 
+  editor.on("cursorActivity", () => {
+    sendCursorThrottled();
+  });
+
+  // ====== FORCE BUTTON ======
+  document.getElementById("publish").onclick = () => {
+    // код
+    sendSafe({
+      type: "code",
+      lessonId: LESSON_ID,
+      key: TEACHER_KEY,
+      html: editor.getValue()
+    });
+
+    // курсор/выделение
+    const sel = editor.listSelections()[0];
+    const from = sel.from(), to = sel.to();
+    sendSafe({
+      type: "cursor",
+      lessonId: LESSON_ID,
+      key: TEACHER_KEY,
+      from: { line: from.line, ch: from.ch },
+      to:   { line: to.line,   ch: to.ch }
+    });
+  };
+
+  // На старте — отправим текущее состояние
+  setTimeout(() => {
+    document.getElementById("publish").click();
+  }, 350);
+</script>
 </body>
 </html>

@@ -1,8 +1,15 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>BYTEWEBNEST · Student</title>
+
+  <!-- CodeMirror (для просмотра кода) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
 
   <style>
     body {
@@ -11,44 +18,61 @@
       color: #fff;
       font-family: system-ui;
     }
-
     header {
       padding: 14px;
       text-align: center;
-      font-weight: bold;
+      font-weight: 700;
       background: linear-gradient(90deg, #7b2ff7, #c09bff);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      font-size: 20px;
+      font-size: 18px;
     }
 
-    .controls {
+    .topbar {
       display: flex;
+      gap: 10px;
       justify-content: center;
       align-items: center;
-      gap: 12px;
-      padding: 6px 0;
+      flex-wrap: wrap;
+      padding: 10px 12px 0;
+      max-width: 1200px;
+      margin: 0 auto;
     }
-
-    .controls button {
+    .pill {
+      padding: 8px 10px;
+      border: 1px solid rgba(123,47,247,.6);
+      border-radius: 10px;
+      background: rgba(26,16,42,.6);
+      color: #e8e0ff;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: #ff4d4d;
+      box-shadow: 0 0 10px rgba(255,77,77,.6);
+      display: inline-block;
+    }
+    .status-dot.ok {
+      background: #2bd576;
+      box-shadow: 0 0 10px rgba(43,213,118,.6);
+    }
+    .btn {
       background: #1a102a;
-      border: 1px solid #7b2ff7;
-      color: #c09bff;
-      font-size: 18px;
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
+      border: 1px solid rgba(123,47,247,.8);
+      color: #e8e0ff;
+      padding: 8px 10px;
+      border-radius: 10px;
       cursor: pointer;
+      font-weight: 600;
+      line-height: 1;
     }
-
-    .controls button:hover {
-      background: #7b2ff7;
-      color: #fff;
-    }
-
-    .controls span {
-      font-size: 14px;
-      opacity: 0.8;
+    .btn:hover {
+      background: rgba(123,47,247,.18);
     }
 
     .grid {
@@ -56,96 +80,214 @@
       grid-template-columns: 1fr 1fr;
       gap: 10px;
       padding: 10px;
+      max-width: 1200px;
+      margin: 0 auto;
+      box-sizing: border-box;
+    }
+
+    .panel {
+      border: 2px solid #7b2ff7;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000;
+      min-height: 65vh;
+    }
+
+    /* CodeMirror left */
+    .CodeMirror {
+      height: 65vh;
+      font-size: 14px;
+    }
+
+    /* Teacher selection / caret */
+    .bwn-selection {
+      background: rgba(123, 47, 247, 0.28);
+    }
+    .bwn-line {
+      background: rgba(123, 47, 247, 0.12) !important;
+    }
+    .bwn-caret {
+      display: inline-block;
+      width: 2px;
+      height: 1.2em;
+      background: #c09bff;
+      box-shadow: 0 0 10px rgba(192,155,255,.8);
+      vertical-align: -0.15em;
     }
 
     iframe {
       width: 100%;
-      height: 70vh;
-      border: 2px solid #7b2ff7;
-      border-radius: 10px;
+      height: 65vh;
+      border: 0;
       background: #000;
     }
 
     @media (max-width: 900px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
+      .grid { grid-template-columns: 1fr; }
+      .CodeMirror, iframe { height: 55vh; }
     }
   </style>
 </head>
-<body>
 
+<body>
 <header>BYTEWEBNEST · Live Lesson · Student</header>
 
-<div class="controls">
-  <button id="fontMinus">−</button>
-  <span>Размер кода</span>
-  <button id="fontPlus">+</button>
+<div class="topbar">
+  <div class="pill">
+    <span id="dot" class="status-dot"></span>
+    <span id="wsStatus">WS: connecting…</span>
+  </div>
+
+  <div class="pill">Lesson: <b id="lessonView">lesson-1</b></div>
+
+  <div class="pill">
+    Код: 
+    <button class="btn" id="dec">A-</button>
+    <button class="btn" id="inc">A+</button>
+    <span id="fsLabel" style="opacity:.85"></span>
+  </div>
 </div>
 
 <div class="grid">
-  <iframe id="code"></iframe>
-  <iframe id="preview"></iframe>
+  <div class="panel" id="codePanel"></div>
+  <div class="panel"><iframe id="preview" title="Результат"></iframe></div>
 </div>
 
 <script>
-  const codeFrame = document.getElementById("code")
-  const previewFrame = document.getElementById("preview")
+  // ====== CONFIG ======
+  const WS_URL  = "wss://bwn-live-lesson.onrender.com/ws";
+  const LESSON_ID = "lesson-1";
 
-  const ws = new WebSocket("wss://bwn-live-lesson.onrender.com")
+  document.getElementById("lessonView").textContent = LESSON_ID;
 
-  // 🔠 управление размером
-  const baseFontSize = 14
-  let currentFontSize = baseFontSize
-  let lastHTML = ""
-
-  function renderCode(html) {
-    codeFrame.srcdoc = `
-      <pre style="
-        color:#e8e0ff;
-        padding:10px;
-        font-size:${currentFontSize}px;
-        line-height:1.5;
-        white-space:pre-wrap;
-      ">${escapeHtml(html)}</pre>
-    `
+  // ====== UI status ======
+  const dot = document.getElementById("dot");
+  const wsStatus = document.getElementById("wsStatus");
+  function setStatus(ok, text) {
+    wsStatus.textContent = text;
+    dot.classList.toggle("ok", !!ok);
   }
 
-  ws.onopen = () => {
-    ws.send(JSON.stringify({
-      type: "subscribe",
-      lessonId: "lesson-1"
-    }))
-  }
+  // ====== CodeMirror read-only viewer ======
+  const codePanel = document.getElementById("codePanel");
+  const viewer = CodeMirror(codePanel, {
+    value: "",
+    mode: "htmlmixed",
+    theme: "material-darker",
+    lineNumbers: true,
+    readOnly: "nocursor"
+  });
 
-  ws.onmessage = e => {
-    const msg = JSON.parse(e.data)
-    if (msg.type === "update") {
-      lastHTML = msg.html
-      renderCode(lastHTML)
-      previewFrame.srcdoc = lastHTML
+  // Font size controls (min = baseline)
+  const BASE_FS = 14;
+  const MAX_FS = 24;
+  let currentFs = BASE_FS;
+
+  const fsLabel = document.getElementById("fsLabel");
+  function applyFontSize() {
+    viewer.getWrapperElement().style.fontSize = currentFs + "px";
+    viewer.refresh();
+    fsLabel.textContent = currentFs + "px";
+  }
+  applyFontSize();
+
+  document.getElementById("inc").onclick = () => {
+    currentFs = Math.min(MAX_FS, currentFs + 1);
+    applyFontSize();
+  };
+  document.getElementById("dec").onclick = () => {
+    // нельзя меньше базового
+    currentFs = Math.max(BASE_FS, currentFs - 1);
+    applyFontSize();
+  };
+
+  // ====== teacher highlight state ======
+  let selMark = null;
+  let caretBookmark = null;
+  let lastLine = null;
+
+  function clearTeacherMarks() {
+    if (selMark) { selMark.clear(); selMark = null; }
+    if (caretBookmark) { caretBookmark.clear(); caretBookmark = null; }
+    if (lastLine !== null) {
+      viewer.removeLineClass(lastLine, "background", "bwn-line");
+      lastLine = null;
     }
   }
 
-  document.getElementById("fontPlus").onclick = () => {
-    currentFontSize += 2
-    renderCode(lastHTML)
-  }
+  function applyTeacherCursor(from, to) {
+    clearTeacherMarks();
 
-  document.getElementById("fontMinus").onclick = () => {
-    if (currentFontSize > baseFontSize) {
-      currentFontSize -= 2
-      renderCode(lastHTML)
+    // подсветка строки курсора
+    lastLine = from.line;
+    viewer.addLineClass(lastLine, "background", "bwn-line");
+
+    // выделение диапазона (если есть)
+    const hasSelection = !(from.line === to.line && from.ch === to.ch);
+    if (hasSelection) {
+      selMark = viewer.markText(from, to, { className: "bwn-selection" });
     }
+
+    // caret (визуальный курсор) на позиции "to" (или from)
+    const caretPos = to;
+    const caretEl = document.createElement("span");
+    caretEl.className = "bwn-caret";
+    caretBookmark = viewer.setBookmark(caretPos, { widget: caretEl });
+
+    // прокрутка, чтобы курсор был виден
+    viewer.scrollIntoView({ from, to }, 60);
   }
 
-  function escapeHtml(str) {
-    return str
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
+  // ====== preview ======
+  const preview = document.getElementById("preview");
+
+  // ====== WS connect + reconnect ======
+  let ws;
+  let reconnectTimer = null;
+
+  function connect() {
+    setStatus(false, "WS: connecting…");
+    ws = new WebSocket(WS_URL);
+
+    ws.onopen = () => {
+      setStatus(true, "WS: connected ✅");
+      ws.send(JSON.stringify({ type: "subscribe", lessonId: LESSON_ID }));
+    };
+
+    ws.onclose = () => {
+      setStatus(false, "WS: disconnected…");
+      if (!reconnectTimer) {
+        reconnectTimer = setTimeout(() => {
+          reconnectTimer = null;
+          connect();
+        }, 1200);
+      }
+    };
+
+    ws.onerror = () => setStatus(false, "WS: error…");
+
+    ws.onmessage = (e) => {
+      let msg;
+      try { msg = JSON.parse(e.data); } catch { return; }
+      if (msg.lessonId !== LESSON_ID) return;
+
+      if (msg.type === "code") {
+        viewer.setValue(msg.html || "");
+        preview.srcdoc = msg.html || "";
+        viewer.refresh();
+        return;
+      }
+
+      if (msg.type === "cursor") {
+        if (msg.from && msg.to) {
+          applyTeacherCursor(msg.from, msg.to);
+        }
+        return;
+      }
+    };
   }
+
+  connect();
 </script>
-
 </body>
 </html>
