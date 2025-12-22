@@ -1,82 +1,105 @@
-import http from "http";
-import { WebSocketServer } from "ws";
+import http from "http"
+import { WebSocketServer } from "ws"
+import fs from "fs"
+import path from "path"
+import { fileURLToPath } from "url"
 
-const PORT = process.env.PORT || 3000;
-const BWN_KEY = process.env.BWN_KEY || "bwn-live-2025";
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
-// lessonId -> { html: string, cursor: {from,to} }
-const lessons = new Map();
+const PORT = process.env.PORT || 3000
+const BWN_KEY = process.env.BWN_KEY || "bwn-live-2025"
 
+/* =========================
+   HTTP SERVER (static)
+========================= */
 const server = http.createServer((req, res) => {
-  res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8" });
-  res.end("BYTEWEBNEST · Live Lesson Server is running ✅");
-});
+  const filePath = path.join(
+    __dirname,
+    "public",
+    req.url === "/" ? "student.html" : req.url
+  )
 
-// WS на /ws
-const wss = new WebSocketServer({ server, path: "/ws" });
+  fs.readFile(filePath, (err, content) => {
+    if (err) {
+      res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" })
+      res.end("404 · File not found")
+      return
+    }
 
-function broadcast(obj) {
-  const data = JSON.stringify(obj);
-  wss.clients.forEach((client) => {
-    if (client.readyState === 1) client.send(data);
-  });
-}
+    const ext = path.extname(filePath)
+    const type =
+      ext === ".html" ? "text/html" :
+      ext === ".css" ? "text/css" :
+      ext === ".js" ? "text/javascript" :
+      "text/plain"
 
-wss.on("connection", (ws) => {
-  ws.on("message", (raw) => {
-    let msg;
+    res.writeHead(200, { "Content-Type": `${type}; charset=utf-8` })
+    res.end(content)
+  })
+})
+
+/* =========================
+   WEBSOCKET SERVER
+========================= */
+const wss = new WebSocketServer({ server })
+const lessons = new Map()
+
+wss.on("connection", ws => {
+  ws.on("message", raw => {
+    let msg
     try {
-      msg = JSON.parse(raw.toString());
+      msg = JSON.parse(raw.toString())
     } catch {
-      return;
+      return
     }
 
-    const lessonId = msg.lessonId || "default";
-    const state = lessons.get(lessonId) || { html: "", cursor: null };
+    const lessonId = msg.lessonId || "lesson-1"
 
-    if (msg.type === "subscribe") {
-      // студенту отдаём последнее состояние
-      ws.send(
-        JSON.stringify({ type: "code", lessonId, html: state.html || "" })
-      );
-      if (state.cursor) {
-        ws.send(
-          JSON.stringify({ type: "cursor", lessonId, ...state.cursor })
-        );
-      }
-      return;
-    }
-
-    // Всё, что меняет состояние (teacher) — защищаем ключом
-    const isTeacherMsg = msg.type === "code" || msg.type === "cursor";
-    if (isTeacherMsg) {
+    // 👨‍🏫 публикация кода
+    if (msg.type === "publish") {
       if (msg.key !== BWN_KEY) {
-        ws.send(JSON.stringify({ type: "error", message: "Bad key" }));
-        return;
+        ws.send(JSON.stringify({ type: "error", message: "Bad key" }))
+        return
       }
+
+      lessons.set(lessonId, msg.html || "")
+
+      wss.clients.forEach(client => {
+        if (client.readyState === 1) {
+          client.send(JSON.stringify({
+            type: "update",
+            lessonId,
+            html: lessons.get(lessonId)
+          }))
+        }
+      })
     }
 
-    if (msg.type === "code") {
-      state.html = String(msg.html || "");
-      lessons.set(lessonId, state);
-      broadcast({ type: "code", lessonId, html: state.html });
-      return;
-    }
-
+    // 🖱️ курсор / выделение
     if (msg.type === "cursor") {
-      // from/to: {line, ch}
-      const from = msg.from;
-      const to = msg.to;
-      if (!from || !to) return;
-
-      state.cursor = { from, to };
-      lessons.set(lessonId, state);
-      broadcast({ type: "cursor", lessonId, from, to });
-      return;
+      wss.clients.forEach(client => {
+        if (client.readyState === 1) {
+          client.send(JSON.stringify({
+            type: "cursor",
+            lessonId,
+            selections: msg.selections
+          }))
+        }
+      })
     }
-  });
-});
+
+    // 👨‍🎓 подписка ученика
+    if (msg.type === "subscribe") {
+      ws.send(JSON.stringify({
+        type: "update",
+        lessonId,
+        html: lessons.get(lessonId) || ""
+      }))
+    }
+  })
+})
 
 server.listen(PORT, () => {
-  console.log(`🚀 BYTEWEBNEST Live Lesson running on port ${PORT}`);
-});
+  console.log(`🚀 BYTEWEBNEST Live Lesson running on ${PORT}`)
+})
