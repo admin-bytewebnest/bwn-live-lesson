@@ -1,147 +1,97 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <title>BYTEWEBNEST · Teacher</title>
 
-<!-- CodeMirror -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closetag.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/html-hint.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/css-hint.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/xml-hint.min.js"></script>
 
 <style>
-body {
-  margin: 0;
-  background: #0f0a1a;
-  color: #fff;
-  font-family: system-ui;
-}
+body { margin:0; background:#0f0a1a; color:#fff; font-family:system-ui }
 header {
-  padding: 14px;
-  text-align: center;
-  font-weight: bold;
-  background: linear-gradient(90deg, #7b2ff7, #c09bff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  font-size: 20px;
+  padding:14px; text-align:center; font-weight:bold;
+  background:linear-gradient(90deg,#7b2ff7,#c09bff);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
 }
-.editor-wrap { padding: 12px; }
-.CodeMirror {
-  height: 60vh;
-  font-size: 15px;
-  border-radius: 10px;
-}
+.CodeMirror { height:65vh; border-radius:10px }
 button {
-  margin-top: 12px;
-  width: 100%;
-  padding: 14px;
-  font-size: 16px;
-  background: #7b2ff7;
-  border: none;
-  border-radius: 10px;
-  color: white;
-  cursor: pointer;
+  margin:12px; width:calc(100% - 24px);
+  padding:14px; background:#7b2ff7;
+  border:none; border-radius:10px;
+  color:#fff; cursor:pointer;
 }
-button:hover { background: #9f6bff; }
 </style>
 </head>
 
 <body>
 <header>BYTEWEBNEST · Live Lesson · Teacher</header>
 
-<div class="editor-wrap">
 <textarea id="editor">
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Demo</title>
 <style>
-body { background:#111; color:#fff; font-family:Arial; }
-h1 { color:#7b2ff7; }
+body { background:#111; color:#fff }
+h1 { color:#7b2ff7 }
 </style>
 </head>
 <body>
-
 <h1>Hello BYTEWEBNEST</h1>
 <p>Live coding работает 🚀</p>
-
 </body>
 </html>
 </textarea>
 
-<button id="publish">Опубликовать код (вручную)</button>
-</div>
+<button id="publish">Опубликовать (fallback)</button>
 
 <script>
-const editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
-  mode: "htmlmixed",
-  theme: "material-darker",
-  lineNumbers: true,
-  autoCloseTags: true,
-  autoCloseBrackets: true,
-  extraKeys: {
-    "Ctrl-Space": "autocomplete",
-    "Tab": cm => cm.replaceSelection("  ")
-  }
-})
-
-// подсказки
-editor.on("inputRead", (cm, change) => {
-  if (change.text[0].match(/[\w<]/) && !cm.state.completionActive) {
-    cm.showHint({ completeSingle: false })
-  }
+const editor = CodeMirror.fromTextArea(editorEl = document.getElementById("editor"), {
+  mode:"htmlmixed",
+  theme:"material-darker",
+  lineNumbers:true,
+  autoCloseTags:true,
+  autoCloseBrackets:true
 })
 
 const ws = new WebSocket("wss://bwn-live-lesson.onrender.com")
 
-function debounce(fn, delay = 250) {
-  let t
-  return (...a) => {
-    clearTimeout(t)
-    t = setTimeout(() => fn(...a), delay)
-  }
+function debounce(fn, d=200){
+  let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),d) }
 }
 
-const autoPublish = debounce(() => {
-  if (ws.readyState !== WebSocket.OPEN) return
+const publish = debounce(()=>{
+  if(ws.readyState!==1) return
   ws.send(JSON.stringify({
-    type: "publish",
-    lessonId: "lesson-1",
-    key: "bwn-live-2025",
-    html: editor.getValue()
-  }))
-}, 250)
-
-// LIVE HTML
-editor.on("change", autoPublish)
-
-// 🔴 КУРСОР / ВЫДЕЛЕНИЕ
-editor.on("cursorActivity", () => {
-  const sel = editor.listSelections()[0]
-  if (!sel || ws.readyState !== WebSocket.OPEN) return
-
-  ws.send(JSON.stringify({
-    type: "cursor",
-    lessonId: "lesson-1",
-    from: sel.anchor,
-    to: sel.head
+    type:"publish",
+    lessonId:"lesson-1",
+    key:"bwn-live-2025",
+    html:editor.getValue()
   }))
 })
 
-// ручная кнопка
-document.getElementById("publish").onclick = () => autoPublish()
+editor.on("change", publish)
+
+editor.on("cursorActivity", ()=>{
+  const s = editor.listSelections()[0]
+  if(!s || ws.readyState!==1) return
+  ws.send(JSON.stringify({
+    type:"cursor",
+    lessonId:"lesson-1",
+    from:s.anchor,
+    to:s.head
+  }))
+})
+
+publishBtn.onclick = publish
 </script>
 </body>
 </html>
