@@ -59,12 +59,6 @@ button {
 <textarea id="editor">
 <!DOCTYPE html>
 <html>
-<head>
-<style>
-body { background:#111; color:#fff; }
-h1 { color:#7b2ff7; }
-</style>
-</head>
 <body>
 <h1>Hello BYTEWEBNEST</h1>
 </body>
@@ -92,7 +86,7 @@ const editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
   }
 })
 
-// 🔥 автоподсказки как в VS Code
+// 🔥 автоподсказки
 editor.on("inputRead", (cm, change) => {
   if (
     change.text[0].match(/[\w<]/) &&
@@ -106,10 +100,7 @@ const ws = new WebSocket("wss://bwn-live-lesson.onrender.com")
 
 function debounce(fn, delay=250){
   let t
-  return (...a)=>{
-    clearTimeout(t)
-    t = setTimeout(()=>fn(...a), delay)
-  }
+  return ()=>{ clearTimeout(t); t=setTimeout(fn,delay) }
 }
 
 const autoPublish = debounce(()=>{
@@ -124,7 +115,6 @@ const autoPublish = debounce(()=>{
 
 editor.on("change", autoPublish)
 
-// курсор + выделение
 editor.on("cursorActivity", ()=>{
   const sel = editor.listSelections()[0]
   if(!sel || ws.readyState!==1) return

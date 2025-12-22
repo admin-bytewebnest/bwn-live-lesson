@@ -25,6 +25,31 @@ header {
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
 }
+.controls {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:12px;
+  padding:6px 0;
+}
+.controls button {
+  background:#1a102a;
+  border:1px solid #7b2ff7;
+  color:#c09bff;
+  font-size:18px;
+  width:36px;
+  height:36px;
+  border-radius:8px;
+  cursor:pointer;
+}
+.controls button:hover {
+  background:#7b2ff7;
+  color:#fff;
+}
+.controls span {
+  font-size:14px;
+  opacity:.8;
+}
 .grid {
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -47,6 +72,12 @@ iframe {
 <body>
 <header>BYTEWEBNEST · Live Lesson · Student</header>
 
+<div class="controls">
+  <button id="fontMinus">−</button>
+  <span>Размер кода</span>
+  <button id="fontPlus">+</button>
+</div>
+
 <div class="grid">
   <textarea id="code"></textarea>
   <iframe id="preview"></iframe>
@@ -54,6 +85,9 @@ iframe {
 
 <script>
 const previewFrame = document.getElementById("preview")
+
+const baseFontSize = 14
+let currentFontSize = baseFontSize
 
 const codeMirror = CodeMirror.fromTextArea(
   document.getElementById("code"),
@@ -66,24 +100,44 @@ const codeMirror = CodeMirror.fromTextArea(
   }
 )
 
+function applyFontSize() {
+  codeMirror.getWrapperElement().style.fontSize = currentFontSize + "px"
+  codeMirror.refresh()
+}
+
+applyFontSize()
+
+document.getElementById("fontPlus").onclick = () => {
+  currentFontSize += 2
+  applyFontSize()
+}
+
+document.getElementById("fontMinus").onclick = () => {
+  if (currentFontSize > baseFontSize) {
+    currentFontSize -= 2
+    applyFontSize()
+  }
+}
+
 const ws = new WebSocket("wss://bwn-live-lesson.onrender.com")
 
-ws.onopen = ()=>{
+ws.onopen = () => {
   ws.send(JSON.stringify({
     type:"subscribe",
     lessonId:"lesson-1"
   }))
 }
 
-ws.onmessage = e=>{
+ws.onmessage = e => {
   const msg = JSON.parse(e.data)
 
-  if(msg.type==="update"){
+  if (msg.type === "update") {
     codeMirror.setValue(msg.html)
     previewFrame.srcdoc = msg.html
+    applyFontSize()
   }
 
-  if(msg.type==="cursor"){
+  if (msg.type === "cursor") {
     codeMirror.setSelection(msg.from, msg.to)
     codeMirror.scrollIntoView(msg.from, 100)
   }
