@@ -1,80 +1,52 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>BYTEWEBNEST · Live Lesson · Student</title>
+<meta charset="UTF-8">
+<title>BYTEWEBNEST · Student</title>
 
-  <style>
-    body {
-      margin: 0;
-      background: #0f0a1a;
-      color: #fff;
-      font-family: system-ui;
-    }
-
-    header {
-      padding: 14px;
-      text-align: center;
-      font-weight: bold;
-      background: linear-gradient(90deg, #7b2ff7, #c09bff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      font-size: 20px;
-    }
-
-    .controls {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 14px;
-      padding: 8px 0;
-    }
-
-    .controls button {
-      background: #1a102a;
-      border: 2px solid #7b2ff7;
-      color: #c09bff;
-      font-size: 20px;
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      cursor: pointer;
-    }
-
-    .controls button:hover {
-      background: #7b2ff7;
-      color: #fff;
-    }
-
-    .controls span {
-      font-size: 14px;
-      opacity: 0.85;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      padding: 10px;
-    }
-
-    iframe {
-      width: 100%;
-      height: 70vh;
-      border: 2px solid #7b2ff7;
-      border-radius: 10px;
-      background: #000;
-    }
-
-    @media (max-width: 900px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+<style>
+body {
+  margin:0;
+  background:#0f0a1a;
+  color:#fff;
+  font-family:system-ui;
+}
+header {
+  padding:14px;
+  text-align:center;
+  font-weight:bold;
+  background:linear-gradient(90deg,#7b2ff7,#c09bff);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.controls {
+  display:flex;
+  justify-content:center;
+  gap:10px;
+}
+.controls button {
+  width:36px;height:36px;
+  border:1px solid #7b2ff7;
+  background:#1a102a;
+  color:#c09bff;
+  cursor:pointer;
+}
+.grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  padding:10px;
+}
+iframe {
+  width:100%;
+  height:70vh;
+  border:2px solid #7b2ff7;
+  border-radius:10px;
+}
+</style>
 </head>
-<body>
 
+<body>
 <header>BYTEWEBNEST · Live Lesson · Student</header>
 
 <div class="controls">
@@ -89,70 +61,47 @@
 </div>
 
 <script>
-  const codeFrame = document.getElementById("code")
-  const previewFrame = document.getElementById("preview")
+const codeFrame = document.getElementById("code")
+const previewFrame = document.getElementById("preview")
+const ws = new WebSocket("wss://bwn-live-lesson.onrender.com")
 
-  const baseFontSize = 14
-  let currentFontSize = baseFontSize
-  let lastHTML = ""
+let baseFontSize = 14
+let fontSize = baseFontSize
+let lastHTML = ""
+let highlight = null
 
-  function escapeHtml(str) {
-    return str
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
+function escapeHtml(s) {
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+}
+
+function renderCode(from=null,to=null) {
+  const lines = lastHTML.split("\n")
+  const html = lines.map((l,i)=>{
+    if (from!==null && i>=from && i<=to)
+      return `<div style="background:rgba(123,47,247,.25)">${escapeHtml(l)}</div>`
+    return `<div>${escapeHtml(l)}</div>`
+  }).join("")
+  codeFrame.srcdoc = `<pre style="color:#e8e0ff;font-size:${fontSize}px;padding:10px">${html}</pre>`
+}
+
+ws.onopen = () => ws.send(JSON.stringify({ type:"subscribe", lessonId:"lesson-1" }))
+
+ws.onmessage = e => {
+  const msg = JSON.parse(e.data)
+
+  if (msg.type==="update") {
+    lastHTML = msg.html
+    renderCode()
+    previewFrame.srcdoc = lastHTML
   }
 
-  function renderCode(html) {
-    codeFrame.srcdoc = `
-<!DOCTYPE html>
-<html>
-<body style="
-  margin:0;
-  background:#0f0a1a;
-  color:#e8e0ff;
-  font-family:monospace;
-">
-<pre style="
-  padding:12px;
-  font-size:${currentFontSize}px;
-  line-height:1.5;
-  white-space:pre-wrap;
-">${escapeHtml(html)}</pre>
-</body>
-</html>`
+  if (msg.type==="cursor") {
+    renderCode(msg.from.line, msg.to.line)
   }
+}
 
-  const ws = new WebSocket(`wss://${location.host}`)
-
-  ws.onopen = () => {
-    ws.send(JSON.stringify({
-      type: "subscribe",
-      lessonId: "lesson-1"
-    }))
-  }
-
-  ws.onmessage = e => {
-    const msg = JSON.parse(e.data)
-    if (msg.type === "update") {
-      lastHTML = msg.html || ""
-      renderCode(lastHTML)
-      previewFrame.srcdoc = lastHTML
-    }
-  }
-
-  document.getElementById("fontPlus").onclick = () => {
-    currentFontSize += 2
-    if (lastHTML) renderCode(lastHTML)
-  }
-
-  document.getElementById("fontMinus").onclick = () => {
-    if (currentFontSize > baseFontSize) {
-      currentFontSize -= 2
-      if (lastHTML) renderCode(lastHTML)
-    }
-  }
+fontPlus.onclick = () => { fontSize+=2; renderCode() }
+fontMinus.onclick = () => { if(fontSize>baseFontSize){ fontSize-=2; renderCode() } }
 </script>
-
 </body>
 </html>
