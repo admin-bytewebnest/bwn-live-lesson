@@ -41,9 +41,9 @@ body {
   top: 0;
   z-index: 10;
   height: 56px;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
   align-items: center;
-  justify-content: space-between;
   padding: 0 16px;
   background: var(--bg-panel);
   backdrop-filter: blur(14px);
@@ -56,11 +56,14 @@ body {
   background: linear-gradient(90deg, var(--accent), var(--accent-soft));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+
+  grid-column: 1 /2;
 }
 
 .controls {
   display: flex;
   gap: 8px;
+  grid-column: 2 / 3;
 }
 
 .controls button {
