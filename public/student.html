@@ -1,16 +1,15 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
   <meta charset="UTF-8">
-  <title>BYTEWEBNEST · Student</title>
+  <title>BYTEWEBNEST · Live Lesson · Student</title>
 
   <style>
     body {
       margin: 0;
       background: #0f0a1a;
       color: #fff;
-      font-family: system-ui
+      font-family: system-ui;
     }
 
     header {
@@ -19,102 +18,141 @@
       font-weight: bold;
       background: linear-gradient(90deg, #7b2ff7, #c09bff);
       -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent
+      -webkit-text-fill-color: transparent;
+      font-size: 20px;
     }
 
     .controls {
       display: flex;
       justify-content: center;
-      gap: 10px
+      align-items: center;
+      gap: 14px;
+      padding: 8px 0;
     }
 
-    button {
-      width: 36px;
-      height: 36px;
+    .controls button {
       background: #1a102a;
-      border: 1px solid #7b2ff7;
+      border: 2px solid #7b2ff7;
       color: #c09bff;
-      border-radius: 8px
+      font-size: 20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .controls button:hover {
+      background: #7b2ff7;
+      color: #fff;
+    }
+
+    .controls span {
+      font-size: 14px;
+      opacity: 0.85;
     }
 
     .grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
-      padding: 10px
+      padding: 10px;
     }
 
     iframe {
       width: 100%;
       height: 70vh;
       border: 2px solid #7b2ff7;
-      border-radius: 10px
+      border-radius: 10px;
+      background: #000;
     }
 
-    mark {
-      background: #7b2ff755
-    }
-
-    @media(max-width:900px) {
+    @media (max-width: 900px) {
       .grid {
-        grid-template-columns: 1fr
+        grid-template-columns: 1fr;
       }
     }
   </style>
 </head>
-
 <body>
-  <header>BYTEWEBNEST · Live Lesson · Student</header>
 
-  <div class="controls">
-    <button id="minus">−</button>
-    <button id="plus">+</button>
-  </div>
+<header>BYTEWEBNEST · Live Lesson · Student</header>
 
-  <div class="grid">
-    <iframe id="code"></iframe>
-    <iframe id="preview"></iframe>
-  </div>
+<div class="controls">
+  <button id="fontMinus">−</button>
+  <span>Размер кода</span>
+  <button id="fontPlus">+</button>
+</div>
 
-  <script>
-    const ws = new WebSocket(`wss://${location.host}`)
-    const code = document.getElementById("code")
-    const preview = document.getElementById("preview")
+<div class="grid">
+  <iframe id="code"></iframe>
+  <iframe id="preview"></iframe>
+</div>
 
-    let font = 14
-    let html = ""
-    let selection = null
+<script>
+  const codeFrame = document.getElementById("code")
+  const previewFrame = document.getElementById("preview")
 
-    function render() {
-      let lines = escape(html).split("\n")
+  const baseFontSize = 14
+  let currentFontSize = baseFontSize
+  let lastHTML = ""
 
-      if (selection && selection[0]) {
-        const a = selection[0].anchor.line
-        const h = selection[0].head.line
-        for (let i = Math.min(a, h); i <= Math.max(a, h); i++) {
-          lines[i] = `<mark>${lines[i]}</mark>`
-        }
-      }
+  function escapeHtml(str) {
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+  }
 
-      code.srcdoc = `<pre style="font-size:${font}px">${lines.join("\n")}</pre>`
-      preview.srcdoc = html
-    }
-
-    ws.onopen = () => ws.send(JSON.stringify({ type: "subscribe", lessonId: "lesson-1" }))
-
-    ws.onmessage = e => {
-      const m = JSON.parse(e.data)
-      if (m.type === "update") { html = m.html; render() }
-      if (m.type === "cursor") { selection = m.selections; render() }
-    }
-
-    plus.onclick = () => { font += 2; render() }
-    minus.onclick = () => { if (font > 14) { font -= 2; render() } }
-
-    function escape(s) {
-      return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    }
-  </script>
+  function renderCode(html) {
+    codeFrame.srcdoc = `
+<!DOCTYPE html>
+<html>
+<body style="
+  margin:0;
+  background:#0f0a1a;
+  color:#e8e0ff;
+  font-family:monospace;
+">
+<pre style="
+  padding:12px;
+  font-size:${currentFontSize}px;
+  line-height:1.5;
+  white-space:pre-wrap;
+">${escapeHtml(html)}</pre>
 </body>
+</html>`
+  }
 
+  const ws = new WebSocket(`wss://${location.host}`)
+
+  ws.onopen = () => {
+    ws.send(JSON.stringify({
+      type: "subscribe",
+      lessonId: "lesson-1"
+    }))
+  }
+
+  ws.onmessage = e => {
+    const msg = JSON.parse(e.data)
+    if (msg.type === "update") {
+      lastHTML = msg.html || ""
+      renderCode(lastHTML)
+      previewFrame.srcdoc = lastHTML
+    }
+  }
+
+  document.getElementById("fontPlus").onclick = () => {
+    currentFontSize += 2
+    if (lastHTML) renderCode(lastHTML)
+  }
+
+  document.getElementById("fontMinus").onclick = () => {
+    if (currentFontSize > baseFontSize) {
+      currentFontSize -= 2
+      if (lastHTML) renderCode(lastHTML)
+    }
+  }
+</script>
+
+</body>
 </html>

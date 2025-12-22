@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
-  <meta charset="UTF-8">
-  <title>BYTEWEBNEST · Teacher</title>
+  <meta charset="UTF-8" />
+  <title>BYTEWEBNEST · Live Lesson · Teacher</title>
 
+  <!-- CodeMirror -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
 
@@ -18,7 +18,7 @@
       margin: 0;
       background: #0f0a1a;
       color: #fff;
-      font-family: system-ui
+      font-family: system-ui;
     }
 
     header {
@@ -27,80 +27,87 @@
       font-weight: bold;
       background: linear-gradient(90deg, #7b2ff7, #c09bff);
       -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent
+      -webkit-text-fill-color: transparent;
+      font-size: 20px;
+    }
+
+    .editor-wrap {
+      padding: 12px;
     }
 
     .CodeMirror {
       height: 65vh;
-      border-radius: 10px
+      font-size: 15px;
+      border-radius: 10px;
     }
 
     button {
+      margin-top: 12px;
       width: 100%;
-      margin-top: 10px;
       padding: 14px;
+      font-size: 16px;
       background: #7b2ff7;
-      border: 0;
+      border: none;
       border-radius: 10px;
-      color: #fff
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #9f6bff;
     }
   </style>
 </head>
-
 <body>
-  <header>BYTEWEBNEST · Live Lesson · Teacher</header>
 
+<header>BYTEWEBNEST · Live Lesson · Teacher</header>
+
+<div class="editor-wrap">
   <textarea id="editor">
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <body>
 <h1>Hello BYTEWEBNEST</h1>
 <p>Live coding 🚀</p>
 </body>
 </html>
-</textarea>
+  </textarea>
 
-  <button id="publish">Опубликовать (вручную)</button>
+  <button id="publishBtn">Опубликовать (вручную)</button>
+</div>
 
-  <script>
-    const editor = CodeMirror.fromTextArea(editor, {
+<script>
+  const editor = CodeMirror.fromTextArea(
+    document.getElementById("editor"),
+    {
       mode: "htmlmixed",
       theme: "material-darker",
       lineNumbers: true,
       autoCloseTags: true,
       autoCloseBrackets: true
-    })
+    }
+  )
 
-    const ws = new WebSocket(`wss://${location.host}`)
+  const ws = new WebSocket(`wss://${location.host}`)
 
-    // авто-публикация
-    let timer
-    editor.on("change", () => {
-      clearTimeout(timer)
-      timer = setTimeout(publish, 250)
-    })
+  ws.onopen = () => {
+    console.log("✅ WS connected (teacher)")
+  }
 
-    // курсор и выделение
-    editor.on("cursorActivity", () => {
-      ws.send(JSON.stringify({
-        type: "cursor",
-        lessonId: "lesson-1",
-        selections: editor.listSelections()
-      }))
-    })
-
-    function publish() {
-      if (ws.readyState !== 1) return
-      ws.send(JSON.stringify({
-        type: "publish",
-        lessonId: "lesson-1",
-        key: "bwn-live-2025",
-        html: editor.getValue()
-      }))
+  document.getElementById("publishBtn").onclick = () => {
+    if (ws.readyState !== WebSocket.OPEN) {
+      alert("WebSocket ещё не подключён")
+      return
     }
 
-    publishBtn.onclick = publish
-  </script>
-</body>
+    ws.send(JSON.stringify({
+      type: "publish",
+      lessonId: "lesson-1",
+      key: "bwn-live-2025",
+      html: editor.getValue()
+    }))
+  }
+</script>
 
+</body>
 </html>
