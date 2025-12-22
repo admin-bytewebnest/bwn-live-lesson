@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>BYTEWEBNEST · Student</title>
+<title>BYTEWEBNEST · Live Lesson · Student</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
@@ -12,151 +12,123 @@
 
 <style>
 :root {
-  --bg-main:#0b0714;
-  --panel-bg:rgba(20,12,35,.75);
-  --panel-border:rgba(123,47,247,.35);
-  --accent:#7b2ff7;
-  --accent-soft:rgba(123,47,247,.25);
-  --text-soft:#c9bfff;
+  --bg-main: #0b0714;
+  --bg-panel: rgba(20, 12, 35, 0.75);
+  --accent: #7b2ff7;
+  --accent-soft: #c09bff;
+  --border-soft: rgba(123, 47, 247, 0.35);
 }
 
-* { box-sizing:border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
-  margin:0;
-  height:100vh;
+  margin: 0;
+  height: 100vh;
   background:
-    radial-gradient(circle at top,#1a1033,#0b0714 70%);
-  color:#fff;
-  font-family:system-ui;
-  overflow:hidden;
+    radial-gradient(1200px 600px at 10% -10%, rgba(123,47,247,0.15), transparent),
+    radial-gradient(800px 400px at 90% 10%, rgba(192,155,255,0.12), transparent),
+    var(--bg-main);
+  color: #fff;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont;
+  overflow: hidden;
 }
 
-/* HEADER */
-header {
-  height:56px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight:600;
-  letter-spacing:.5px;
-  background:linear-gradient(90deg,var(--accent),#c09bff);
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
+/* ===== TOP BAR ===== */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: var(--bg-panel);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-soft);
 }
 
-/* LAYOUT */
-.workspace {
-  height:calc(100vh - 56px);
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-  padding:12px;
+.header-title {
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-soft));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-/* PANELS */
-.panel {
-  background:var(--panel-bg);
-  border:1px solid var(--panel-border);
-  border-radius:16px;
-  backdrop-filter:blur(14px);
-  box-shadow:
-    0 0 0 1px rgba(255,255,255,.03),
-    0 20px 40px rgba(0,0,0,.6);
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-}
-
-/* PANEL HEADER */
-.panel-title {
-  padding:10px 14px;
-  font-size:13px;
-  text-transform:uppercase;
-  letter-spacing:1px;
-  color:var(--text-soft);
-  border-bottom:1px solid rgba(255,255,255,.05);
-  background:linear-gradient(180deg,rgba(255,255,255,.04),transparent);
-}
-
-/* CODEMIRROR */
-.CodeMirror {
-  flex:1;
-  font-size:14px;
-  background:transparent;
-}
-
-/* PREVIEW */
-iframe {
-  flex:1;
-  border:none;
-  background:#000;
-}
-
-/* FLOAT CONTROLS */
 .controls {
-  position:absolute;
-  top:70px;
-  left:50%;
-  transform:translateX(-50%);
-  display:flex;
-  gap:8px;
-  background:rgba(15,10,25,.8);
-  border:1px solid var(--panel-border);
-  border-radius:14px;
-  padding:6px 10px;
-  backdrop-filter:blur(12px);
+  display: flex;
+  gap: 8px;
 }
 
 .controls button {
-  width:34px;
-  height:34px;
-  border-radius:10px;
-  border:1px solid var(--panel-border);
-  background:rgba(123,47,247,.15);
-  color:#fff;
-  font-size:18px;
-  cursor:pointer;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border-soft);
+  background: rgba(123,47,247,0.12);
+  color: var(--accent-soft);
+  font-size: 18px;
+  cursor: pointer;
+  transition: all .2s ease;
 }
 
 .controls button:hover {
-  background:var(--accent);
+  background: var(--accent);
+  color: #fff;
 }
 
-.controls span {
-  display:flex;
-  align-items:center;
-  font-size:13px;
-  opacity:.7;
+/* ===== MAIN LAYOUT ===== */
+.main {
+  height: calc(100vh - 56px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
 }
 
-/* RESPONSIVE */
-@media (max-width:900px) {
-  .workspace {
-    grid-template-columns:1fr;
-  }
+/* ===== CODE ===== */
+.code-wrap {
+  border-right: 1px solid var(--border-soft);
+  background: rgba(10,6,18,0.9);
+}
+
+.CodeMirror {
+  height: 100%;
+  font-size: 14px;
+}
+
+/* ===== PREVIEW ===== */
+.preview-wrap {
+  background: #000;
+}
+
+.preview-wrap iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
 }
 </style>
 </head>
 
 <body>
 
-<header>BYTEWEBNEST · Live Lesson · Student</header>
-
-<div class="controls">
-  <button id="fontMinus">−</button>
-  <span>Code size</span>
-  <button id="fontPlus">+</button>
+<!-- HEADER -->
+<div class="header">
+  <div class="header-title">BYTEWEBNEST · Live Lesson</div>
+  <div class="controls">
+    <button id="fontMinus">−</button>
+    <button id="fontPlus">+</button>
+  </div>
 </div>
 
-<div class="workspace">
-  <div class="panel">
-    <div class="panel-title">Live Code</div>
+<!-- MAIN -->
+<div class="main">
+  <div class="code-wrap">
     <textarea id="code"></textarea>
   </div>
 
-  <div class="panel">
-    <div class="panel-title">Live Result</div>
+  <div class="preview-wrap">
     <iframe id="preview"></iframe>
   </div>
 </div>
@@ -170,45 +142,54 @@ let currentFontSize = baseFontSize
 const codeMirror = CodeMirror.fromTextArea(
   document.getElementById("code"),
   {
-    mode:"htmlmixed",
-    theme:"material-darker",
-    lineNumbers:true,
-    readOnly:true,
-    cursorBlinkRate:0
+    mode: "htmlmixed",
+    theme: "material-darker",
+    lineNumbers: true,
+    readOnly: true,
+    cursorBlinkRate: 0
   }
 )
 
-function applyFontSize(){
+function applyFontSize() {
   codeMirror.getWrapperElement().style.fontSize = currentFontSize + "px"
   codeMirror.refresh()
 }
+
 applyFontSize()
 
-fontPlus.onclick = ()=>{ currentFontSize+=2; applyFontSize() }
-fontMinus.onclick = ()=>{
-  if(currentFontSize>baseFontSize){
-    currentFontSize-=2; applyFontSize()
+fontPlus.onclick = () => {
+  currentFontSize += 2
+  applyFontSize()
+}
+
+fontMinus.onclick = () => {
+  if (currentFontSize > baseFontSize) {
+    currentFontSize -= 2
+    applyFontSize()
   }
 }
 
 const ws = new WebSocket("wss://bwn-live-lesson.onrender.com")
 
-ws.onopen = ()=>{
-  ws.send(JSON.stringify({ type:"subscribe", lessonId:"lesson-1" }))
+ws.onopen = () => {
+  ws.send(JSON.stringify({
+    type: "subscribe",
+    lessonId: "lesson-1"
+  }))
 }
 
-ws.onmessage = e=>{
+ws.onmessage = e => {
   const msg = JSON.parse(e.data)
 
-  if(msg.type==="update"){
+  if (msg.type === "update") {
     codeMirror.setValue(msg.html)
     previewFrame.srcdoc = msg.html
     applyFontSize()
   }
 
-  if(msg.type==="cursor"){
-    codeMirror.setSelection(msg.from,msg.to)
-    codeMirror.scrollIntoView(msg.from,100)
+  if (msg.type === "cursor") {
+    codeMirror.setSelection(msg.from, msg.to)
+    codeMirror.scrollIntoView(msg.from, 100)
   }
 }
 </script>
