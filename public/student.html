@@ -58,32 +58,32 @@ const previewFrame = document.getElementById("preview")
 const codeMirror = CodeMirror.fromTextArea(
   document.getElementById("code"),
   {
-    mode: "htmlmixed",
-    theme: "material-darker",
-    lineNumbers: true,
-    readOnly: true,
-    cursorBlinkRate: 0
+    mode:"htmlmixed",
+    theme:"material-darker",
+    lineNumbers:true,
+    readOnly:true,
+    cursorBlinkRate:0
   }
 )
 
 const ws = new WebSocket("wss://bwn-live-lesson.onrender.com")
 
-ws.onopen = () => {
+ws.onopen = ()=>{
   ws.send(JSON.stringify({
     type:"subscribe",
     lessonId:"lesson-1"
   }))
 }
 
-ws.onmessage = e => {
+ws.onmessage = e=>{
   const msg = JSON.parse(e.data)
 
-  if (msg.type === "update") {
+  if(msg.type==="update"){
     codeMirror.setValue(msg.html)
     previewFrame.srcdoc = msg.html
   }
 
-  if (msg.type === "cursor") {
+  if(msg.type==="cursor"){
     codeMirror.setSelection(msg.from, msg.to)
     codeMirror.scrollIntoView(msg.from, 100)
   }

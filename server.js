@@ -32,7 +32,7 @@ const lessons = new Map()
 wss.on("connection", ws=>{
   ws.on("message", raw=>{
     let msg
-    try { msg = JSON.parse(raw) } catch { return }
+    try{ msg = JSON.parse(raw) } catch { return }
 
     const id = msg.lessonId || "lesson-1"
 

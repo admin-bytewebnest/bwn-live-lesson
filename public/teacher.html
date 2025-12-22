@@ -9,11 +9,17 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closetag.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/html-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/css-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/xml-hint.min.js"></script>
 
 <style>
 body {
@@ -53,6 +59,12 @@ button {
 <textarea id="editor">
 <!DOCTYPE html>
 <html>
+<head>
+<style>
+body { background:#111; color:#fff; }
+h1 { color:#7b2ff7; }
+</style>
+</head>
 <body>
 <h1>Hello BYTEWEBNEST</h1>
 </body>
@@ -67,21 +79,41 @@ const editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
   theme:"material-darker",
   lineNumbers:true,
   autoCloseTags:true,
-  autoCloseBrackets:true
+  autoCloseBrackets:true,
+  extraKeys:{
+    "Ctrl-Space":"autocomplete",
+    "Tab": cm => {
+      if (cm.state.completionActive) {
+        cm.state.completionActive.pick()
+      } else {
+        cm.replaceSelection("  ")
+      }
+    }
+  }
+})
+
+// 🔥 автоподсказки как в VS Code
+editor.on("inputRead", (cm, change) => {
+  if (
+    change.text[0].match(/[\w<]/) &&
+    !cm.state.completionActive
+  ) {
+    cm.showHint({ completeSingle:false })
+  }
 })
 
 const ws = new WebSocket("wss://bwn-live-lesson.onrender.com")
 
-function debounce(fn, delay=250) {
+function debounce(fn, delay=250){
   let t
-  return function() {
+  return (...a)=>{
     clearTimeout(t)
-    t = setTimeout(fn, delay)
+    t = setTimeout(()=>fn(...a), delay)
   }
 }
 
-const autoPublish = debounce(() => {
-  if (ws.readyState !== WebSocket.OPEN) return
+const autoPublish = debounce(()=>{
+  if(ws.readyState!==1) return
   ws.send(JSON.stringify({
     type:"publish",
     lessonId:"lesson-1",
@@ -92,10 +124,10 @@ const autoPublish = debounce(() => {
 
 editor.on("change", autoPublish)
 
-editor.on("cursorActivity", () => {
+// курсор + выделение
+editor.on("cursorActivity", ()=>{
   const sel = editor.listSelections()[0]
-  if (!sel || ws.readyState !== WebSocket.OPEN) return
-
+  if(!sel || ws.readyState!==1) return
   ws.send(JSON.stringify({
     type:"cursor",
     lessonId:"lesson-1",
