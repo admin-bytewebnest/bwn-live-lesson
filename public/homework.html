@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>BYTEWEBNEST · Homework</title>
+<style>
+body{
+  background:#0f0a1a;
+  color:#fff;
+  font-family:system-ui;
+  padding:40px;
+}
+.card{
+  max-width:600px;
+  margin:auto;
+  background:rgba(20,12,35,.85);
+  border-radius:14px;
+  padding:20px;
+}
+label{ display:block; margin-top:14px; }
+button{
+  margin-top:20px;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#7b2ff7;
+  color:#fff;
+  cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h2>Домашнее задание · Lesson 1</h2>
+
+  <ol>
+    <li>Создать HTML страницу с заголовком</li>
+    <li>Добавить изображение</li>
+    <li>Вставить видео через iframe</li>
+  </ol>
+
+  <form id="hwForm">
+    <label>
+      Ваше имя
+      <input type="text" name="student" required>
+    </label>
+
+    <label>
+      Файл с решением (.html)
+      <input type="file" name="file" accept=".html" required>
+    </label>
+
+    <button type="submit">Отправить ДЗ</button>
+  </form>
+
+  <p id="status"></p>
+</div>
+
+<script>
+const form = document.getElementById("hwForm")
+const status = document.getElementById("status")
+
+form.onsubmit = async e => {
+  e.preventDefault()
+
+  const data = new FormData(form)
+
+  const res = await fetch("/api/upload-homework", {
+    method:"POST",
+    body:data
+  })
+
+  status.textContent = res.ok
+    ? "ДЗ отправлено ✅"
+    : "Ошибка отправки ❌"
+}
+</script>
+
+</body>
+</html>
