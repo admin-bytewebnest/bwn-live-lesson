@@ -5,8 +5,10 @@
   "description": "BYTEWEBNEST Live Lesson WebSocket Server",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
-  },
+  "start": "node server.js",
+  "test-github": "node test-github.js"
+},
+
   "engines": {
     "node": ">=18"
   },
