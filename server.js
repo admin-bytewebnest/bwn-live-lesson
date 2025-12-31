@@ -21,7 +21,7 @@ const GITHUB_BRANCH = process.env.GITHUB_BRANCH || "main"
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN
 
 // ---------------------
-// Создаём HTTP сервер
+// HTTP сервер
 // ---------------------
 const server = http.createServer(async (req, res) => {
   try {
@@ -63,13 +63,15 @@ const server = http.createServer(async (req, res) => {
     // -------------------
     // 2) Раздача статических файлов
     // -------------------
-    // убираем query и hash
-    const cleanUrl = new URL(req.url, `http://${req.headers.host}`).pathname
-    const filePath = path.join(
-      __dirname,
-      "public",
-      cleanUrl === "/" ? "student.html" : cleanUrl
-    )
+    let cleanUrl = new URL(req.url, `http://${req.headers.host}`).pathname
+
+    // убираем ведущий слэш
+    if (cleanUrl.startsWith("/")) cleanUrl = cleanUrl.slice(1)
+
+    // по умолчанию student.html
+    if (cleanUrl === "") cleanUrl = "student.html"
+
+    const filePath = path.join(__dirname, "public", cleanUrl)
 
     fs.readFile(filePath, (err, content) => {
       if (err) {
