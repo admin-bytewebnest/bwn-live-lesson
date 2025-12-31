@@ -1,183 +1,171 @@
-// server.js
 import http from "http"
 import { WebSocketServer } from "ws"
 import fs from "fs"
 import path from "path"
 import { fileURLToPath } from "url"
-import https from "https"
+import fetch from "node-fetch"
 import formidable from "formidable"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+// ---------------------
+// Конфиг
+// ---------------------
 const PORT = process.env.PORT || 3000
 const BWN_KEY = process.env.BWN_KEY
 
-// =======================
-// 1️⃣ GitHub функция
-// =======================
-function saveToGitHub(filename, content) {
-  return new Promise((resolve, reject) => {
-    const owner  = process.env.GITHUB_OWNER
-    const repo   = process.env.GITHUB_REPO
-    const branch = process.env.GITHUB_BRANCH || "main"
-    const token  = process.env.GITHUB_TOKEN
+const GITHUB_OWNER = process.env.GITHUB_OWNER
+const GITHUB_REPO = process.env.GITHUB_REPO
+const GITHUB_BRANCH = process.env.GITHUB_BRANCH || "main"
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN
 
-    const pathInRepo = filename
-
-    const data = JSON.stringify({
-      message: `Update ${filename}`,
-      content: Buffer.from(content).toString("base64"),
-      branch
-    })
-
-    const options = {
-      hostname: "api.github.com",
-      path: `/repos/${owner}/${repo}/contents/${pathInRepo}`,
-      method: "PUT",
-      headers: {
-        "User-Agent": "BYTEWEBNEST",
-        "Authorization": `token ${token}`,
-        "Content-Type": "application/json",
-        "Content-Length": Buffer.byteLength(data)
-      }
-    }
-
-    const req = https.request(options, res => {
-      if (res.statusCode >= 200 && res.statusCode < 300) resolve()
-      else reject()
-    })
-
-    req.on("error", reject)
-    req.write(data)
-    req.end()
-  })
-}
-
-// =======================
-// 2️⃣ HTTP server
-// =======================
+// ---------------------
+// Создаём HTTP сервер
+// ---------------------
 const server = http.createServer(async (req, res) => {
+  try {
+    // -------------------
+    // 1) API для загрузки домашки
+    // -------------------
+    if (req.method === "POST" && req.url === "/api/upload-homework") {
+      const form = formidable({ multiples: false })
+      form.parse(req, async (err, fields, files) => {
+        if (err) {
+          res.writeHead(500)
+          return res.end("Ошибка парсинга формы")
+        }
 
-  // ===== API: сохранение урока в GitHub =====
-  if (req.method === "POST" && req.url === "/api/save-lesson") {
-    let body = ""
-    req.on("data", chunk => body += chunk)
-    req.on("end", async () => {
-      try {
-        const { lessonId, filename, content, key } = JSON.parse(body)
-        if (key !== BWN_KEY) return res.writeHead(403) && res.end("Forbidden")
+        const student = (fields.student || "unknown").replace(/\s+/g, "_")
+        const file = files.file
+        if (!file) {
+          res.writeHead(400)
+          return res.end("Файл не найден")
+        }
 
-        await saveToGitHub(filename, content)
+        const content = fs.readFileSync(file.filepath, "utf-8")
+        const githubPath = `homeworks/lesson-1/${student}.html`
 
-        res.writeHead(200, { "Content-Type": "application/json" })
-        res.end(JSON.stringify({ ok:true }))
-      } catch (e) {
-        console.error(e)
-        res.writeHead(500)
-        res.end("GitHub save error")
-      }
-    })
-    return
-  }
-
-  // ===== API: загрузка домашки =====
-  if (req.method === "POST" && req.url === "/api/upload-homework") {
-    const form = formidable({ multiples:false })
-    form.parse(req, async (err, fields, files) => {
-      if (err) {
-        res.writeHead(400)
-        return res.end("Upload error")
-      }
-
-      const student = fields.student
-      const file = files.file
-      if (!student || !file) {
-        res.writeHead(400)
-        return res.end("Missing fields")
-      }
-
-      const content = fs.readFileSync(file.filepath, "utf8")
-      const safeName = student.replace(/[^\w-]/g,"_")
-
-      try {
-        await saveToGitHub(`homeworks/lesson-1/${safeName}.html`, content)
-        res.writeHead(200)
-        res.end("OK")
-      } catch (e) {
-        console.error(e)
-        res.writeHead(500)
-        res.end("GitHub save error")
-      }
-    })
-    return
-  }
-
-  // ===== Раздача статических файлов =====
-  const filePath = path.join(
-    __dirname,
-    "public",
-    req.url === "/" ? "student.html" : req.url
-  )
-
-  fs.readFile(filePath,(err,content)=>{
-    if(err){
-      res.writeHead(404)
-      return res.end("404")
+        // Загружаем на GitHub
+        try {
+          await uploadToGitHub(githubPath, content, `HW by ${student}`)
+          res.writeHead(200)
+          res.end("ОК")
+        } catch (e) {
+          console.error(e)
+          res.writeHead(500)
+          res.end("Ошибка загрузки на GitHub")
+        }
+      })
+      return
     }
-    res.end(content)
-  })
+
+    // -------------------
+    // 2) Раздача статических файлов
+    // -------------------
+    // убираем query и hash
+    const cleanUrl = new URL(req.url, `http://${req.headers.host}`).pathname
+    const filePath = path.join(
+      __dirname,
+      "public",
+      cleanUrl === "/" ? "student.html" : cleanUrl
+    )
+
+    fs.readFile(filePath, (err, content) => {
+      if (err) {
+        res.writeHead(404)
+        return res.end("404")
+      }
+      res.end(content)
+    })
+  } catch (e) {
+    console.error(e)
+    res.writeHead(500)
+    res.end("500 Internal Server Error")
+  }
 })
 
-// =======================
-// 3️⃣ WebSocket
-// =======================
+// ---------------------
+// WebSocket для live lesson
+// ---------------------
 const wss = new WebSocketServer({ server })
 const lessons = new Map()
 
-wss.on("connection", ws=>{
-  ws.on("message", raw=>{
+wss.on("connection", ws => {
+  ws.on("message", raw => {
     let msg
-    try{ msg = JSON.parse(raw) } catch { return }
+    try { msg = JSON.parse(raw) } catch { return }
 
     const id = msg.lessonId || "lesson-1"
 
-    if(msg.type==="publish"){
-      if(msg.key !== BWN_KEY) return
+    if (msg.type === "publish") {
+      if (msg.key !== BWN_KEY) return
       lessons.set(id, msg.html)
 
-      wss.clients.forEach(c=>{
-        if(c.readyState===1){
+      // Отправляем всем клиентам
+      wss.clients.forEach(c => {
+        if (c.readyState === 1) {
           c.send(JSON.stringify({
-            type:"update",
-            lessonId:id,
-            html:msg.html
+            type: "update",
+            lessonId: id,
+            html: msg.html
           }))
         }
       })
     }
 
-    if(msg.type==="cursor"){
-      wss.clients.forEach(c=>{
-        if(c.readyState===1){
+    if (msg.type === "cursor") {
+      wss.clients.forEach(c => {
+        if (c.readyState === 1) {
           c.send(JSON.stringify(msg))
         }
       })
     }
 
-    if(msg.type==="subscribe"){
+    if (msg.type === "subscribe") {
       ws.send(JSON.stringify({
-        type:"update",
-        lessonId:id,
+        type: "update",
+        lessonId: id,
         html: lessons.get(id) || ""
       }))
     }
   })
 })
 
-// =======================
-// 4️⃣ Запуск сервера
-// =======================
-server.listen(PORT, ()=> {
-  console.log("🚀 BYTEWEBNEST Live Lesson running on port", PORT)
+// ---------------------
+// Функция загрузки на GitHub
+// ---------------------
+async function uploadToGitHub(pathInRepo, content, message) {
+  const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${pathInRepo}`
+
+  // Проверяем, есть ли файл уже
+  const existing = await fetch(url, {
+    headers: { Authorization: `token ${GITHUB_TOKEN}` }
+  }).then(r => r.json())
+
+  const sha = existing.sha || undefined
+
+  const body = {
+    message,
+    content: Buffer.from(content).toString("base64"),
+    branch: GITHUB_BRANCH,
+    sha
+  }
+
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: {
+      "Authorization": `token ${GITHUB_TOKEN}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+  })
+
+  if (!res.ok) throw new Error("Ошибка GitHub API: " + res.statusText)
+  return res.json()
+}
+
+// ---------------------
+server.listen(PORT, () => {
+  console.log(`🚀 BYTEWEBNEST Live Lesson running on port ${PORT}`)
 })
