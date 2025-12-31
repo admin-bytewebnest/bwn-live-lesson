@@ -5,8 +5,7 @@
   "description": "BYTEWEBNEST Live Lesson WebSocket Server",
   "main": "server.js",
   "scripts": {
-  "start": "node test-github.js",
-  "test-github": "node test-github.js"
+  "start": "node test-github.js"
 },
 
   "engines": {
