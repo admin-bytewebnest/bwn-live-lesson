@@ -30,31 +30,31 @@ const server = http.createServer(async (req, res) => {
     // -------------------
     if (req.method === "POST" && req.url === "/api/upload-homework") {
       const form = formidable({ multiples: false })
+
       form.parse(req, async (err, fields, files) => {
         if (err) {
           res.writeHead(500)
           return res.end("Ошибка парсинга формы")
         }
 
-        // Проверка student
-        let student = fields.student
-        if (Array.isArray(student)) student = student[0]
-        student = (student || "unknown").toString().replace(/\s+/g, "_")
+        // Имя ученика
+        const student = (fields.student || "unknown").toString().replace(/\s+/g, "_")
 
+        // Проверяем файл
         const file = files.file
         if (!file) {
           res.writeHead(400)
           return res.end("Файл не найден")
         }
 
-        // Formidable v3+ использует file.filepath
-        const filePath = file.filepath ?? file.path ?? file.file
-        if (!filePath) {
+        // В новых версиях Formidable путь к файлу -> file.filepath
+        const filepath = file.filepath
+        if (!filepath) {
           res.writeHead(400)
-          return res.end("Файл не найден")
+          return res.end("Файл не найден (filepath)")
         }
 
-        const content = fs.readFileSync(filePath, "utf-8")
+        const content = fs.readFileSync(filepath, "utf-8")
         const githubPath = `homeworks/lesson-1/${student}.html`
 
         // Загружаем на GitHub
@@ -112,7 +112,6 @@ wss.on("connection", ws => {
       if (msg.key !== BWN_KEY) return
       lessons.set(id, msg.html)
 
-      // Отправляем всем клиентам
       wss.clients.forEach(c => {
         if (c.readyState === 1) {
           c.send(JSON.stringify({
@@ -153,7 +152,7 @@ async function uploadToGitHub(pathInRepo, content, message) {
     headers: { Authorization: `token ${GITHUB_TOKEN}` }
   }).then(r => r.json())
 
-  const sha = existing.sha ?? undefined
+  const sha = existing.sha || undefined
 
   const body = {
     message,
