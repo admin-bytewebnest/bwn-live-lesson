@@ -21,7 +21,7 @@ const GITHUB_BRANCH = process.env.GITHUB_BRANCH || "main"
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN
 
 // ---------------------
-// HTTP сервер
+// Создаём HTTP сервер
 // ---------------------
 const server = http.createServer(async (req, res) => {
   try {
@@ -36,7 +36,9 @@ const server = http.createServer(async (req, res) => {
           return res.end("Ошибка парсинга формы")
         }
 
-        const student = (fields.student || "unknown").replace(/\s+/g, "_")
+        // Приводим имя студента к строке безопасно
+        const student = String(fields.student || "unknown").replace(/\s+/g, "_")
+
         const file = files.file
         if (!file) {
           res.writeHead(400)
@@ -63,15 +65,12 @@ const server = http.createServer(async (req, res) => {
     // -------------------
     // 2) Раздача статических файлов
     // -------------------
-    let cleanUrl = new URL(req.url, `http://${req.headers.host}`).pathname
-
-    // убираем ведущий слэш
-    if (cleanUrl.startsWith("/")) cleanUrl = cleanUrl.slice(1)
-
-    // по умолчанию student.html
-    if (cleanUrl === "") cleanUrl = "student.html"
-
-    const filePath = path.join(__dirname, "public", cleanUrl)
+    const cleanUrl = new URL(req.url, `http://${req.headers.host}`).pathname
+    const filePath = path.join(
+      __dirname,
+      "public",
+      cleanUrl === "/" ? "student.html" : cleanUrl
+    )
 
     fs.readFile(filePath, (err, content) => {
       if (err) {
