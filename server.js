@@ -36,8 +36,10 @@ const server = http.createServer(async (req, res) => {
           return res.end("Ошибка парсинга формы")
         }
 
-        // Приводим имя студента к строке безопасно
-        const student = String(fields.student || "unknown").replace(/\s+/g, "_")
+        // Проверка student
+        let student = fields.student
+        if (Array.isArray(student)) student = student[0]
+        student = (student || "unknown").toString().replace(/\s+/g, "_")
 
         const file = files.file
         if (!file) {
@@ -45,7 +47,14 @@ const server = http.createServer(async (req, res) => {
           return res.end("Файл не найден")
         }
 
-        const content = fs.readFileSync(file.filepath, "utf-8")
+        // Formidable v3+ использует file.filepath
+        const filePath = file.filepath ?? file.path ?? file.file
+        if (!filePath) {
+          res.writeHead(400)
+          return res.end("Файл не найден")
+        }
+
+        const content = fs.readFileSync(filePath, "utf-8")
         const githubPath = `homeworks/lesson-1/${student}.html`
 
         // Загружаем на GitHub
@@ -144,7 +153,7 @@ async function uploadToGitHub(pathInRepo, content, message) {
     headers: { Authorization: `token ${GITHUB_TOKEN}` }
   }).then(r => r.json())
 
-  const sha = existing.sha || undefined
+  const sha = existing.sha ?? undefined
 
   const body = {
     message,

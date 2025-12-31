@@ -4,28 +4,41 @@
 <meta charset="UTF-8">
 <title>BYTEWEBNEST · Homework</title>
 <style>
-body{
-  background:#0f0a1a;
-  color:#fff;
-  font-family:system-ui;
-  padding:40px;
+body {
+  background: #0f0a1a;
+  color: #fff;
+  font-family: system-ui;
+  padding: 40px;
 }
-.card{
-  max-width:600px;
-  margin:auto;
-  background:rgba(20,12,35,.85);
-  border-radius:14px;
-  padding:20px;
+.card {
+  max-width: 600px;
+  margin: auto;
+  background: rgba(20,12,35,.85);
+  border-radius: 14px;
+  padding: 20px;
 }
-label{ display:block; margin-top:14px; }
-button{
-  margin-top:20px;
-  padding:12px;
-  border:none;
-  border-radius:10px;
-  background:#7b2ff7;
-  color:#fff;
-  cursor:pointer;
+label { display: block; margin-top: 14px; }
+input[type="text"], input[type="file"] {
+  width: 100%;
+  margin-top: 6px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #555;
+  background: #1c122f;
+  color: #fff;
+}
+button {
+  margin-top: 20px;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: #7b2ff7;
+  color: #fff;
+  cursor: pointer;
+}
+#status {
+  margin-top: 16px;
+  font-weight: bold;
 }
 </style>
 </head>
@@ -61,20 +74,30 @@ button{
 const form = document.getElementById("hwForm")
 const status = document.getElementById("status")
 
-form.onsubmit = async e => {
+form.addEventListener("submit", async e => {
   e.preventDefault()
 
   const data = new FormData(form)
+  status.textContent = "Отправка..."
 
-  const res = await fetch("/api/upload-homework", {
-    method:"POST",
-    body:data
-  })
+  try {
+    const res = await fetch("/api/upload-homework", {
+      method: "POST",
+      body: data
+    })
 
-  status.textContent = res.ok
-    ? "ДЗ отправлено ✅"
-    : "Ошибка отправки ❌"
-}
+    if (res.ok) {
+      status.textContent = "ДЗ отправлено ✅"
+      form.reset()
+    } else {
+      const text = await res.text()
+      status.textContent = "Ошибка отправки ❌: " + text
+    }
+  } catch (err) {
+    console.error(err)
+    status.textContent = "Ошибка отправки ❌: " + err.message
+  }
+})
 </script>
 
 </body>
