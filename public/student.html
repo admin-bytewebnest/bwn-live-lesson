@@ -4,11 +4,27 @@
 <meta charset="UTF-8">
 <title>BYTEWEBNEST · Student</title>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/html-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/css-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/xml-hint.min.js"></script>
+
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closetag.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+
+
 
 <style>
 :root {
@@ -189,13 +205,33 @@ const btnMinus = document.getElementById("fontMinus")
 const codeMirror = CodeMirror.fromTextArea(
   document.getElementById("code"),
   {
-    mode:"htmlmixed",
-    theme:"material-darker",
-    lineNumbers:true,
-    readOnly:true,
-    cursorBlinkRate:0
+    mode: "htmlmixed",
+    theme: "material-darker",
+    lineNumbers: true,
+
+    readOnly: true,          // 👈 ученик не может писать
+    cursorBlinkRate: 0,
+
+    autoCloseTags: true,
+    autoCloseBrackets: true,
+
+    extraKeys: {
+      "Ctrl-Space": "autocomplete"
+    }
   }
 )
+codeMirror.on("inputRead", (cm, change) => {
+  if (
+    change.text &&
+    change.text[0] &&
+    change.text[0].match(/[\w<:-]/) &&
+    !cm.state.completionActive
+  ) {
+    cm.showHint({ completeSingle:false })
+  }
+})
+
+
 
 function applyFontSize() {
   codeMirror.getWrapperElement().style.fontSize = currentFontSize + "px"
