@@ -22,225 +22,211 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/xml-hint.min.js"></script>
 
 <style>
-:root{
-  --bg: #0f0a1a;
-  --card: rgba(20, 12, 35, 0.78);
-  --stroke: rgba(123, 47, 247, 0.55);
-  --stroke2: rgba(192, 155, 255, 0.35);
-  --text: #ffffff;
-  --muted: rgba(232, 224, 255, 0.75);
-  --accent: #7b2ff7;
-  --accent2: #c09bff;
-  --shadow: 0 20px 50px rgba(0,0,0,.45);
-  --radius: 14px;
-}
+  :root{
+    --bg: #0f0a1a;
+    --card: rgba(20, 12, 35, 0.78);
+    --stroke: rgba(123, 47, 247, 0.55);
+    --stroke2: rgba(192, 155, 255, 0.35);
+    --text: #ffffff;
+    --muted: rgba(232, 224, 255, 0.75);
+    --accent: #7b2ff7;
+    --accent2: #c09bff;
+    --shadow: 0 20px 50px rgba(0,0,0,.45);
+    --radius: 14px;
+  }
 
-*{ box-sizing:border-box; }
+  *{ box-sizing:border-box; }
 
-body {
-  margin:0;
-  background:
-    radial-gradient(900px 500px at 10% 10%, rgba(123,47,247,.18), transparent 60%),
-    radial-gradient(900px 500px at 90% 20%, rgba(192,155,255,.14), transparent 60%),
-    radial-gradient(1000px 600px at 50% 110%, rgba(123,47,247,.10), transparent 60%),
-    var(--bg);
-  color: var(--text);
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
-  min-height: 100vh;
-}
+  body {
+    margin:0;
+    background:
+      radial-gradient(900px 500px at 10% 10%, rgba(123,47,247,.18), transparent 60%),
+      radial-gradient(900px 500px at 90% 20%, rgba(192,155,255,.14), transparent 60%),
+      radial-gradient(1000px 600px at 50% 110%, rgba(123,47,247,.10), transparent 60%),
+      var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    min-height: 100vh;
+  }
 
-header {
-  padding: 18px 14px 10px;
-  text-align: center;
-  font-weight: 800;
-  letter-spacing: .6px;
-  background: linear-gradient(90deg, var(--accent), var(--accent2));
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-  font-size: 20px;
-}
+  header {
+    padding: 18px 14px 10px;
+    text-align: center;
+    font-weight: 800;
+    letter-spacing: .6px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    font-size: 20px;
+  }
 
-.wrap{
-  width: min(1200px, 94vw);
-  margin: 0 auto;
-  padding: 12px 0 22px;
-}
+  .wrap{
+    width: min(1200px, 94vw);
+    margin: 0 auto;
+    padding: 12px 0 22px;
+  }
 
-.topbar{
-  display:flex;
-  gap:12px;
-  align-items:stretch;
-  justify-content:space-between;
-  flex-wrap:wrap;
-  margin-bottom: 12px;
-}
+  .topbar{
+    display:flex;
+    gap:12px;
+    align-items:stretch;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    margin-bottom: 12px;
+  }
 
-.pill{
-  flex: 1 1 260px;
-  background: linear-gradient(180deg, rgba(20,12,35,.85), rgba(20,12,35,.65));
-  border: 1px solid var(--stroke2);
-  box-shadow: var(--shadow);
-  border-radius: var(--radius);
-  padding: 12px;
-  overflow:hidden;
-  position:relative;
-}
+  .pill{
+    flex: 1 1 260px;
+    background: linear-gradient(180deg, rgba(20,12,35,.85), rgba(20,12,35,.65));
+    border: 1px solid var(--stroke2);
+    box-shadow: var(--shadow);
+    border-radius: var(--radius);
+    padding: 12px;
+    overflow:hidden;
+    position:relative;
+  }
 
-.pill::before{
-  content:"";
-  position:absolute;
-  inset:-2px;
-  background: radial-gradient(500px 120px at 20% 0%, rgba(123,47,247,.22), transparent 65%);
-  pointer-events:none;
-}
+  .pill::before{
+    content:"";
+    position:absolute;
+    inset:-2px;
+    background: radial-gradient(500px 120px at 20% 0%, rgba(123,47,247,.22), transparent 65%);
+    pointer-events:none;
+  }
 
-.pill-title{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  margin-bottom: 10px;
-}
+  .pill-title{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom: 10px;
+  }
 
-.pill-title b{
-  font-size: 13px;
-  letter-spacing:.35px;
-  color: rgba(232,224,255,.9);
-}
+  .pill-title b{
+    font-size: 13px;
+    letter-spacing:.35px;
+    color: rgba(232,224,255,.9);
+  }
 
-.hint{
-  font-size: 12px;
-  color: var(--muted);
-  opacity: .9;
-  white-space:nowrap;
-}
+  .hint{
+    font-size: 12px;
+    color: var(--muted);
+    opacity: .9;
+    white-space:nowrap;
+  }
 
-.snip-row{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  flex-wrap:wrap;
-}
+  .snip-row{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    flex-wrap:wrap;
+  }
 
-select{
-  flex: 1 1 220px;
-  appearance:none;
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(123,47,247,.45);
-  background: rgba(10, 6, 18, .55);
-  color: rgba(232,224,255,.95);
-  outline:none;
-}
+  select{
+    flex: 1 1 220px;
+    appearance:none;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(123,47,247,.45);
+    background: rgba(10, 6, 18, .55);
+    color: rgba(232,224,255,.95);
+    outline:none;
+  }
 
-select:focus{
-  border-color: rgba(192,155,255,.7);
-  box-shadow: 0 0 0 3px rgba(123,47,247,.18);
-}
+  select:focus{
+    border-color: rgba(192,155,255,.7);
+    box-shadow: 0 0 0 3px rgba(123,47,247,.18);
+  }
 
-.btn{
-  border: 1px solid rgba(123,47,247,.55);
-  background: linear-gradient(180deg, rgba(123,47,247,.95), rgba(123,47,247,.75));
-  color:#fff;
-  padding: 10px 12px;
-  border-radius: 12px;
-  cursor:pointer;
-  font-weight: 700;
-  letter-spacing: .2px;
-  transition: .18s ease;
-  box-shadow: 0 16px 35px rgba(123,47,247,.18);
-}
-.btn:hover{ transform: translateY(-1px); box-shadow: 0 22px 45px rgba(123,47,247,.24); }
-.btn:active{ transform: translateY(0px); }
+  .btn{
+    border: 1px solid rgba(123,47,247,.55);
+    background: linear-gradient(180deg, rgba(123,47,247,.95), rgba(123,47,247,.75));
+    color:#fff;
+    padding: 10px 12px;
+    border-radius: 12px;
+    cursor:pointer;
+    font-weight: 700;
+    letter-spacing: .2px;
+    transition: .18s ease;
+    box-shadow: 0 16px 35px rgba(123,47,247,.18);
+  }
+  .btn:hover{ transform: translateY(-1px); box-shadow: 0 22px 45px rgba(123,47,247,.24); }
+  .btn:active{ transform: translateY(0px); }
 
-.btn-ghost{
-  background: rgba(10, 6, 18, .35);
-  border: 1px solid rgba(192,155,255,.35);
-  color: rgba(232,224,255,.9);
-  box-shadow: none;
-}
-.btn-ghost:hover{
-  box-shadow: 0 16px 35px rgba(0,0,0,.25);
-}
+  .btn-ghost{
+    background: rgba(10, 6, 18, .35);
+    border: 1px solid rgba(192,155,255,.35);
+    color: rgba(232,224,255,.9);
+    box-shadow: none;
+  }
+  .btn-ghost:hover{
+    box-shadow: 0 16px 35px rgba(0,0,0,.25);
+  }
 
-.editor-card{
-  background: linear-gradient(180deg, rgba(20,12,35,.85), rgba(20,12,35,.62));
-  border: 1px solid var(--stroke2);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  overflow:hidden;
-}
+  .editor-card{
+    background: linear-gradient(180deg, rgba(20,12,35,.85), rgba(20,12,35,.62));
+    border: 1px solid var(--stroke2);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow:hidden;
+  }
 
-.editor-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  padding: 12px;
-  border-bottom: 1px solid rgba(192,155,255,.16);
-}
+  .editor-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding: 12px;
+    border-bottom: 1px solid rgba(192,155,255,.16);
+  }
 
-.editor-head .left{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  min-width: 240px;
-}
+  .editor-head .left{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    min-width: 240px;
+  }
 
-.dot{
-  width:10px;height:10px;border-radius:50%;
-  background: rgba(123,47,247,.95);
-  box-shadow: 0 0 14px rgba(123,47,247,.55);
-}
+  .dot{
+    width:10px;height:10px;border-radius:50%;
+    background: rgba(123,47,247,.95);
+    box-shadow: 0 0 14px rgba(123,47,247,.55);
+  }
 
-.title{
-  font-weight: 800;
-  letter-spacing: .25px;
-  color: rgba(232,224,255,.95);
-  font-size: 13px;
-}
+  .title{
+    font-weight: 800;
+    letter-spacing: .25px;
+    color: rgba(232,224,255,.95);
+    font-size: 13px;
+  }
 
-.status{
-  font-size: 12px;
-  color: rgba(232,224,255,.65);
-  margin-left: 6px;
-}
+  .status{
+    font-size: 12px;
+    color: rgba(232,224,255,.65);
+    margin-left: 6px;
+  }
 
-.editor-actions{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  flex-wrap:wrap;
-}
+  .editor-actions{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    flex-wrap:wrap;
+  }
 
-.CodeMirror{
-  height: 65vh;
-  font-size: 15px;
-}
+  .CodeMirror{
+    height: 65vh; /* чуть больше, чтобы ощущалось “премиально” */
+    font-size: 15px;
+  }
 
-.draw-iframe {
-  width: 100%;
-  height: 65vh;
-  border: none;
-  display: none;
-  background: #0f0a1a;
-}
+  /* кнопка publish в том же “дорогом” стиле */
+  #publish{
+    width: auto;
+    padding: 10px 14px;
+  }
 
-.draw-canvas {
-  width: 100%;
-  height: 100%;
-  touch-action: none;
-}
-
-#publish{
-  width: auto;
-  padding: 10px 14px;
-}
-
-@media (max-width: 900px){
-  .CodeMirror{ height: 62vh; }
-  .draw-iframe{ height: 62vh; }
-}
+  @media (max-width: 900px){
+    .CodeMirror{ height: 62vh; }
+  }
 </style>
 </head>
 
@@ -249,17 +235,29 @@ select:focus{
 
 <div class="wrap">
 
+  <!-- SNIPPETS / TOOLBAR -->
   <div class="topbar">
     <div class="pill">
-      <div class="pill-title"><b>SNIPPETS</b><div class="hint">Alt+1 · “!” + Tab</div></div>
+      <div class="pill-title">
+        <b>SNIPPETS</b>
+        <div class="hint">Alt+1 · “!” + Tab</div>
+      </div>
+
       <div class="snip-row">
-        <select id="snippetSelect"><option value="html5">! · HTML5 Boilerplate</option></select>
+        <select id="snippetSelect">
+          <option value="html5">! · HTML5 Boilerplate</option>
+        </select>
+
         <button class="btn" id="insertSnippet">Вставить</button>
         <button class="btn btn-ghost" id="replaceAll">Заменить весь код</button>
       </div>
     </div>
+
     <div class="pill" style="flex: 1 1 260px;">
-      <div class="pill-title"><b>LESSON</b><div class="hint">lesson-1</div></div>
+      <div class="pill-title">
+        <b>LESSON</b>
+        <div class="hint">lesson-1</div>
+      </div>
       <div class="snip-row">
         <button class="btn btn-ghost" id="copyLink">Скопировать ссылку ученику</button>
         <button class="btn" id="publish">Опубликовать (fallback)</button>
@@ -267,13 +265,19 @@ select:focus{
     </div>
   </div>
 
+  <!-- EDITOR -->
   <div class="editor-card">
     <div class="editor-head">
-      <div class="left"><span class="dot"></span><span class="title">EDITOR</span><span class="status" id="wsStatus">WS: connecting…</span></div>
+      <div class="left">
+        <span class="dot"></span>
+        <span class="title">EDITOR</span>
+        <span class="status" id="wsStatus">WS: connecting…</span>
+      </div>
+
       <div class="editor-actions">
-        <button class="btn btn-ghost" id="formatTip" type="button" title="Подсказка">Tab: подсказки / вставка сниппета</button>
-        <button class="btn" id="drawMode">🖊 Draw</button>
-        <button class="btn btn-ghost" id="backMode" style="display:none;">↩ Back</button>
+        <button class="btn btn-ghost" id="formatTip" type="button" title="Подсказка">
+          Tab: подсказки / вставка сниппета
+        </button>
       </div>
     </div>
 
@@ -285,150 +289,171 @@ select:focus{
 </body>
 </html>
     </textarea>
-
-    <iframe id="drawFrame" class="draw-iframe"></iframe>
   </div>
+
 </div>
 
 <script>
-const editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
-  mode:"htmlmixed", theme:"material-darker", lineNumbers:true,
-  autoCloseTags:true, autoCloseBrackets:true,
-  extraKeys:{
-    "Ctrl-Space":"autocomplete",
-    "Tab": cm => {
-      const cur = cm.getCursor();
-      const line = cm.getLine(cur.line);
-      const before = line.slice(0, cur.ch);
-      if(before.endsWith("!")){ cm.replaceRange("", { line: cur.line, ch: cur.ch - 1 }, cur); insertSnippet("html5", { mode: "insert" }); return; }
-      if(cm.state.completionActive){ cm.state.completionActive.pick(); } else { cm.replaceSelection("  "); }
-    },
-    "Alt-1": ()=> insertSnippet("html5", { mode: "insert" })
-  }
-});
+  // ===============================
+  // 1) CodeMirror init (НЕ ЛОМАЕМ)
+  // ===============================
+  const editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
+    mode:"htmlmixed",
+    theme:"material-darker",
+    lineNumbers:true,
+    autoCloseTags:true,
+    autoCloseBrackets:true,
+    extraKeys:{
+      "Ctrl-Space":"autocomplete",
 
-editor.on("inputRead", (cm, change) => {
-  if(change.text && change.text[0] && change.text[0].match(/[\w<:-]/) && !cm.state.completionActive){
-    cm.showHint({ completeSingle:false });
-  }
-});
+      // Tab: если есть подсказки — выбираем, иначе вставляем 2 пробела
+      "Tab": cm => {
+        // Если в редакторе написали "!" и жмём Tab — вставляем boilerplate
+        const cur = cm.getCursor();
+        const line = cm.getLine(cur.line);
+        const before = line.slice(0, cur.ch);
 
-const ws = new WebSocket("wss://bwn-live-lesson.onrender.com");
-const wsStatus = document.getElementById("wsStatus");
+        if (before.endsWith("!")) {
+          // удалим "!" и вставим сниппет
+          cm.replaceRange("", { line: cur.line, ch: cur.ch - 1 }, cur);
+          insertSnippet("html5", { mode: "insert" });
+          return;
+        }
 
-ws.onopen = () => { wsStatus.textContent = "WS: online"; };
-ws.onclose = () => { wsStatus.textContent = "WS: offline"; };
-ws.onerror = () => { wsStatus.textContent = "WS: error"; };
+        if (cm.state.completionActive) {
+          cm.state.completionActive.pick();
+        } else {
+          cm.replaceSelection("  ");
+        }
+      },
 
-function debounce(fn, delay=250){
-  let t;
-  return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), delay); };
-}
-
-const autoPublish = debounce(()=>{ 
-  if(ws.readyState!==1) return; 
-  ws.send(JSON.stringify({ type:"publish", lessonId:"lesson-1", key:"bwn-live-2025", html: editor.getValue() })); 
-}, 250);
-
-editor.on("change", autoPublish);
-editor.on("cursorActivity", ()=>{
-  const sel = editor.listSelections()[0];
-  if(!sel || ws.readyState!==1) return;
-  ws.send(JSON.stringify({ type:"cursor", lessonId:"lesson-1", from: sel.anchor, to: sel.head }));
-});
-
-document.getElementById("publish").onclick = ()=> autoPublish();
-
-const SNIPPETS = {
-  html5: `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Document</title></head>
-<body></body>
-</html>`
-};
-
-const snippetSelect = document.getElementById("snippetSelect");
-document.getElementById("insertSnippet").onclick = ()=> insertSnippet(snippetSelect.value, { mode: "insert" });
-document.getElementById("replaceAll").onclick = ()=> insertSnippet(snippetSelect.value, { mode: "replace" });
-
-function insertSnippet(key, opts = { mode: "insert" }) {
-  const snippet = SNIPPETS[key];
-  if(!snippet) return;
-  editor.focus();
-  if(opts.mode==="replace"){ editor.setValue(snippet); autoPublish(); return; }
-  const doc = editor.getDoc(); doc.replaceSelection(snippet, "around"); autoPublish();
-}
-
-document.getElementById("copyLink").onclick = async ()=>{
-  const url = new URL(window.location.href); url.pathname="/student.html"; const link = url.toString();
-  try{ await navigator.clipboard.writeText(link); wsStatus.textContent="Ссылка скопирована ✅"; setTimeout(()=>wsStatus.textContent=(ws.readyState===1?"WS: online":"WS: offline"),1200); }
-  catch{ prompt("Скопируй ссылку ученику:", link); }
-};
-
-const drawBtn = document.getElementById("drawMode");
-const backBtn = document.getElementById("backMode");
-const drawFrame = document.getElementById("drawFrame");
-
-drawBtn.onclick = ()=>{
-  editor.getWrapperElement().style.display = "none";
-  drawFrame.style.display = "block";
-  drawBtn.style.display = "none";
-  backBtn.style.display = "inline-block";
-
-  const doc = drawFrame.contentDocument || drawFrame.contentWindow.document;
-  doc.body.style.margin=0; doc.body.style.background="#0f0a1a";
-  doc.body.innerHTML='<canvas id="drawCanvas" class="draw-canvas"></canvas>';
-  const canvas = doc.getElementById("drawCanvas");
-  const ctx = canvas.getContext("2d");
-
-  function resizeCanvas(){ canvas.width=drawFrame.clientWidth; canvas.height=drawFrame.clientHeight; }
-  resizeCanvas(); window.addEventListener("resize", resizeCanvas);
-
-  let drawing=false;
-  function sendDraw(data){ if(ws.readyState===1){ ws.send(JSON.stringify({ type:"draw", lessonId:"lesson-1", payload:data })); } }
-
-  canvas.addEventListener("pointerdown", e=>{
-    drawing=true;
-    const rect=canvas.getBoundingClientRect();
-    const x=(e.clientX-rect.left)/rect.width;
-    const y=(e.clientY-rect.top)/rect.height;
-    sendDraw({type:"start",x,y});
-    ctx.beginPath(); ctx.moveTo(e.clientX-rect.left,e.clientY-rect.top);
-  });
-  canvas.addEventListener("pointermove", e=>{
-    if(!drawing) return;
-    const rect=canvas.getBoundingClientRect();
-    const x=(e.clientX-rect.left)/rect.width;
-    const y=(e.clientY-rect.top)/rect.height;
-    sendDraw({type:"draw",x,y});
-    ctx.lineTo(e.clientX-rect.left,e.clientY-rect.top);
-    ctx.strokeStyle="#7b2ff7"; ctx.lineWidth=2; ctx.stroke();
-  });
-  canvas.addEventListener("pointerup", e=>{drawing=false; ctx.closePath();});
-  canvas.addEventListener("pointerleave", e=>{drawing=false;});
-};
-
-backBtn.onclick = ()=>{
-  drawFrame.style.display="none";
-  editor.getWrapperElement().style.display="block";
-  backBtn.style.display="none";
-  drawBtn.style.display="inline-block";
-};
-
-ws.onmessage = e=>{
-  const msg = JSON.parse(e.data);
-  if(msg.type==="draw" && msg.payload){
-    if(drawFrame.style.display==="block"){
-      const canvas = drawFrame.contentDocument.getElementById("drawCanvas");
-      if(!canvas) return;
-      const ctx = canvas.getContext("2d");
-      const w=canvas.clientWidth; const h=canvas.clientHeight;
-      const p=msg.payload;
-      if(p.type==="start") ctx.beginPath(), ctx.moveTo(p.x*w,p.y*h);
-      if(p.type==="draw") ctx.lineTo(p.x*w,p.y*h), ctx.strokeStyle="#7b2ff7", ctx.lineWidth=2, ctx.stroke();
+      // Хоткей: Alt+1 вставить сниппет !
+      "Alt-1": () => insertSnippet("html5", { mode: "insert" })
     }
+  });
+
+  // 🔥 автоподсказки (HTML/CSS/XML)
+  editor.on("inputRead", (cm, change) => {
+    if (
+      change.text &&
+      change.text[0] &&
+      change.text[0].match(/[\w<:-]/) &&
+      !cm.state.completionActive
+    ) {
+      cm.showHint({ completeSingle:false });
+    }
+  });
+
+  // ===============================
+  // 2) WS (НЕ ЛОМАЕМ)
+  // ===============================
+  const ws = new WebSocket("wss://bwn-live-lesson.onrender.com");
+  const wsStatus = document.getElementById("wsStatus");
+
+  ws.onopen = () => { wsStatus.textContent = "WS: online"; };
+  ws.onclose = () => { wsStatus.textContent = "WS: offline"; };
+  ws.onerror = () => { wsStatus.textContent = "WS: error"; };
+
+  function debounce(fn, delay=250){
+    let t;
+    return (...args)=>{
+      clearTimeout(t);
+      t = setTimeout(()=>fn(...args), delay);
+    };
   }
-};
+
+  const autoPublish = debounce(()=>{
+    if(ws.readyState!==1) return;
+    ws.send(JSON.stringify({
+      type:"publish",
+      lessonId:"lesson-1",
+      key:"bwn-live-2025",
+      html: editor.getValue()
+    }));
+  }, 250);
+
+  // LIVE HTML
+  editor.on("change", autoPublish);
+
+  // курсор + выделение (для ученика)
+  editor.on("cursorActivity", ()=>{
+    const sel = editor.listSelections()[0];
+    if(!sel || ws.readyState!==1) return;
+
+    ws.send(JSON.stringify({
+      type:"cursor",
+      lessonId:"lesson-1",
+      from: sel.anchor,
+      to: sel.head
+    }));
+  });
+
+  // publish fallback кнопка (как было)
+  document.getElementById("publish").onclick = () => autoPublish();
+
+  // ===============================
+  // 3) Snippets
+  // ===============================
+  const SNIPPETS = {
+    html5:
+`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  
+</body>
+</html>`
+  };
+
+  const snippetSelect = document.getElementById("snippetSelect");
+  document.getElementById("insertSnippet").onclick = () => {
+    insertSnippet(snippetSelect.value, { mode: "insert" });
+  };
+
+  document.getElementById("replaceAll").onclick = () => {
+    insertSnippet(snippetSelect.value, { mode: "replace" });
+  };
+
+  function insertSnippet(key, opts = { mode: "insert" }) {
+    const snippet = SNIPPETS[key];
+    if (!snippet) return;
+
+    editor.focus();
+
+    if (opts.mode === "replace") {
+      editor.setValue(snippet);
+      autoPublish(); // чтобы ученик сразу увидел
+      return;
+    }
+
+    // insert: вставка в позицию курсора / замена выделения
+    const doc = editor.getDoc();
+    doc.replaceSelection(snippet, "around");
+    autoPublish();
+  }
+
+  // ===============================
+  // 4) Ссылка ученику
+  // ===============================
+  document.getElementById("copyLink").onclick = async () => {
+    // если у тебя student.html по корню:
+    // https://bwn-live-lesson.onrender.com/student.html
+    const url = new URL(window.location.href);
+    url.pathname = "/student.html";
+    const link = url.toString();
+
+    try{
+      await navigator.clipboard.writeText(link);
+      wsStatus.textContent = "Ссылка скопирована ✅";
+      setTimeout(()=>wsStatus.textContent = (ws.readyState===1 ? "WS: online" : "WS: offline"), 1200);
+    }catch{
+      prompt("Скопируй ссылку ученику:", link);
+    }
+  };
 </script>
 
 </body>

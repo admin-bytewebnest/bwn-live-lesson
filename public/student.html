@@ -4,20 +4,27 @@
 <meta charset="UTF-8">
 <title>BYTEWEBNEST · Student</title>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closetag.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/html-hint.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/css-hint.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/xml-hint.min.js"></script>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closetag.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+
+
 
 <style>
 :root {
@@ -27,40 +34,142 @@
   --accent: #7b2ff7;
   --accent-soft: rgba(123,47,247,.25);
 }
-* { box-sizing:border-box; }
-body { margin:0; height:100vh; font-family:system-ui; background:radial-gradient(circle at top, #1b1033, #0f0a1a 60%); color:#fff; overflow:hidden; }
-header { height:52px; display:flex; align-items:center; justify-content:center; font-weight:600; letter-spacing:.5px; background: linear-gradient(90deg,#7b2ff7,#c09bff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
 
-.workspace { height:calc(100vh - 52px); display:grid; grid-template-columns:1fr 1fr; gap:14px; padding:14px; }
-.panel { display:flex; flex-direction:column; border-radius:14px; overflow:hidden; backdrop-filter:blur(10px); box-shadow:0 20px 60px rgba(0,0,0,.4);}
-.panel.code { background: var(--panel-code); border:1px solid var(--accent-soft); }
-.panel.preview { background: var(--panel-preview); border:1px solid rgba(255,255,255,.08); position:relative; }
-.panel-header { height:42px; display:flex; align-items:center; justify-content:space-between; padding:0 14px; font-size:13px; letter-spacing:.4px; background: rgba(0,0,0,.25); border-bottom:1px solid rgba(255,255,255,.06);}
-.panel-header span { opacity:.85; }
-.controls { display:flex; gap:8px; }
-.controls button { width:28px; height:28px; border-radius:6px; background:#1a102a; border:1px solid var(--accent-soft); color:#c09bff; cursor:pointer; transition:.15s ease;}
-.controls button:hover { background: var(--accent); color:#fff;}
-.controls button:disabled { opacity:.35; cursor:not-allowed;}
-.panel-body { flex:1; min-height:0; overflow:auto; }
-.CodeMirror { height:100%; background:transparent; font-size:14px; }
-iframe { width:100%; height:100%; border:none; }
-.draw-iframe { position:absolute; top:0; left:0; width:100%; height:100%; background:transparent; display:none; }
+* { box-sizing: border-box; }
+
+body {
+  margin:0;
+  height:100vh;
+  background: radial-gradient(circle at top, #1b1033, #0f0a1a 60%);
+  color:#fff;
+  font-family: system-ui;
+  overflow:hidden;
+}
+
+header {
+  height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:600;
+  letter-spacing:.5px;
+  background: linear-gradient(90deg,#7b2ff7,#c09bff);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+/* ===== Layout ===== */
+.workspace {
+  height: calc(100vh - 52px);
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:14px;
+  padding:14px;
+}
+
+/* ===== Panels ===== */
+.panel {
+  display:flex;
+  flex-direction:column;
+  border-radius:14px;
+  overflow:hidden;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 20px 60px rgba(0,0,0,.4);
+}
+
+.panel.code {
+  background: var(--panel-code);
+  border:1px solid var(--accent-soft);
+}
+
+.panel.preview {
+  background: var(--panel-preview);
+  border:1px solid rgba(255,255,255,.08);
+}
+
+/* ===== Panel Header ===== */
+.panel-header {
+  height:42px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 14px;
+  font-size:13px;
+  letter-spacing:.4px;
+  background: rgba(0,0,0,.25);
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+
+.panel-header span {
+  opacity:.85;
+}
+
+/* ===== Controls ===== */
+.controls {
+  display:flex;
+  gap:8px;
+}
+
+.controls button {
+  width:28px;
+  height:28px;
+  border-radius:6px;
+  background:#1a102a;
+  border:1px solid var(--accent-soft);
+  color:#c09bff;
+  cursor:pointer;
+  transition: .15s ease;
+}
+
+.controls button:hover {
+  background: var(--accent);
+  color:#fff;
+}
+
+.controls button:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+  filter: grayscale(0.3);
+}
+
+.controls button:disabled:hover {
+  background:#1a102a;
+  color:#c09bff;
+}
+
+/* ===== Content ===== */
+.panel-body {
+  flex:1;
+}
+
+.CodeMirror {
+  height:100%;
+  background: transparent;
+  font-size:14px;
+}
+
+iframe {
+  width:100%;
+  height:100%;
+  border:none;
+  background: rgba(12, 12, 18, 0.95);
+}
 </style>
 </head>
 
 <body>
+
 <header>BYTEWEBNEST · Live Lesson · Student</header>
 
 <div class="workspace">
+
   <!-- CODE -->
   <div class="panel code">
     <div class="panel-header">
       <span>Live Coding</span>
       <div class="controls">
-        <button id="fontMinus">−</button>
-        <button id="fontPlus">+</button>
-        <button id="drawBtn">🖊 Draw</button>
-        <button id="backBtn" style="display:none;">↩ Back</button>
+        <button id="fontMinus" type="button">−</button>
+        <button id="fontPlus" type="button">+</button>
       </div>
     </div>
     <div class="panel-body">
@@ -70,88 +179,112 @@ iframe { width:100%; height:100%; border:none; }
 
   <!-- PREVIEW -->
   <div class="panel preview">
-    <div class="panel-header"><span>Code Preview</span></div>
+    <div class="panel-header">
+      <span>Code Preview</span>
+    </div>
     <div class="panel-body">
       <iframe id="preview"></iframe>
-      <iframe id="drawFrame" class="draw-iframe"></iframe>
     </div>
   </div>
+
 </div>
 
 <script>
-// ========== CodeMirror ==========
-const baseFontSize=14, step=2, maxPlusClicks=3;
-let plusClicks=0, currentFontSize=baseFontSize;
-const btnPlus=document.getElementById("fontPlus"), btnMinus=document.getElementById("fontMinus");
+const previewFrame = document.getElementById("preview")
 
-const codeMirror = CodeMirror.fromTextArea(document.getElementById("code"),{
-  mode:"htmlmixed", theme:"material-darker", lineNumbers:true,
-  readOnly:true, cursorBlinkRate:0,
-  autoCloseTags:true, autoCloseBrackets:true,
-  extraKeys:{ "Ctrl-Space":"autocomplete" }
-});
+const baseFontSize = 14
+const step = 2
+const maxPlusClicks = 3 // ✅ максимум 3 увеличения
 
-function applyFontSize(){ codeMirror.getWrapperElement().style.fontSize=currentFontSize+"px"; codeMirror.refresh(); }
-function syncButtons(){ btnMinus.disabled=currentFontSize<=baseFontSize; btnPlus.disabled=plusClicks>=maxPlusClicks; }
-btnPlus.onclick=()=>{ if(plusClicks>=maxPlusClicks) return; plusClicks++; currentFontSize=baseFontSize+plusClicks*step; applyFontSize(); syncButtons(); }
-btnMinus.onclick=()=>{ if(currentFontSize<=baseFontSize) return; plusClicks=Math.max(0,plusClicks-1); currentFontSize=baseFontSize+plusClicks*step; applyFontSize(); syncButtons(); }
-applyFontSize(); syncButtons();
+let plusClicks = 0
+let currentFontSize = baseFontSize
 
-// ========== WebSocket ==========
-const ws = new WebSocket("wss://bwn-live-lesson.onrender.com");
-const previewFrame = document.getElementById("preview");
+const btnPlus = document.getElementById("fontPlus")
+const btnMinus = document.getElementById("fontMinus")
 
-ws.onopen = () => ws.send(JSON.stringify({type:"subscribe", lessonId:"lesson-1"}));
-ws.onmessage = e => {
-  const msg = JSON.parse(e.data);
-  // live code update
-  if(msg.type==="update" && msg.html){ codeMirror.setValue(msg.html); previewFrame.srcdoc=msg.html; applyFontSize(); }
-  if(msg.type==="cursor" && msg.from && msg.to){ codeMirror.setSelection(msg.from,msg.to); codeMirror.scrollIntoView(msg.from,100); }
+const codeMirror = CodeMirror.fromTextArea(
+  document.getElementById("code"),
+  {
+    mode: "htmlmixed",
+    theme: "material-darker",
+    lineNumbers: true,
 
-  // draw from teacher
-  if(msg.type==="draw" && msg.payload){
-    if(drawFrame.style.display==="block"){
-      const canvas = drawFrame.contentDocument.getElementById("drawCanvas");
-      if(!canvas) return;
-      const ctx = canvas.getContext("2d");
-      const p = msg.payload;
-      const w = canvas.width;
-      const h = canvas.height;
-      if(p.type==="start") ctx.beginPath(), ctx.moveTo(p.x*w, p.y*h);
-      if(p.type==="draw") ctx.lineTo(p.x*w, p.y*h), ctx.strokeStyle="#7b2ff7", ctx.lineWidth=2, ctx.stroke();
+    readOnly: true,          // 👈 ученик не может писать
+    cursorBlinkRate: 0,
+
+    autoCloseTags: true,
+    autoCloseBrackets: true,
+
+    extraKeys: {
+      "Ctrl-Space": "autocomplete"
     }
   }
-};
+)
+codeMirror.on("inputRead", (cm, change) => {
+  if (
+    change.text &&
+    change.text[0] &&
+    change.text[0].match(/[\w<:-]/) &&
+    !cm.state.completionActive
+  ) {
+    cm.showHint({ completeSingle:false })
+  }
+})
 
-// ========== Draw Frame ==========
-const drawFrame = document.getElementById("drawFrame");
-const drawBtn = document.getElementById("drawBtn");
-const backBtn = document.getElementById("backBtn");
 
-drawFrame.src = "about:blank";
-drawFrame.addEventListener('load', ()=>{
-  const drawDoc = drawFrame.contentDocument || drawFrame.contentWindow.document;
-  drawDoc.body.style.margin = "0";
-  drawDoc.body.style.background = "transparent";
-  drawDoc.body.innerHTML = '<canvas id="drawCanvas"></canvas>';
 
-  const canvas = drawDoc.getElementById("drawCanvas");
-  canvas.width = drawFrame.clientWidth;
-  canvas.height = drawFrame.clientHeight;
-});
+function applyFontSize() {
+  codeMirror.getWrapperElement().style.fontSize = currentFontSize + "px"
+  codeMirror.refresh()
+}
 
-drawBtn.onclick = ()=>{
-  drawFrame.style.display="block";
-  previewFrame.style.display="none";
-  drawBtn.style.display="none";
-  backBtn.style.display="inline-block";
-};
-backBtn.onclick = ()=>{
-  drawFrame.style.display="none";
-  previewFrame.style.display="block";
-  backBtn.style.display="none";
-  drawBtn.style.display="inline-block";
-};
+function syncButtons() {
+  // "-" доступна только если мы выше базы
+  btnMinus.disabled = currentFontSize <= baseFontSize
+  // "+" доступна только если не превысили 3 клика
+  btnPlus.disabled = plusClicks >= maxPlusClicks
+}
+
+applyFontSize()
+syncButtons()
+
+btnPlus.onclick = () => {
+  if (plusClicks >= maxPlusClicks) return
+  plusClicks += 1
+  currentFontSize = baseFontSize + plusClicks * step
+  applyFontSize()
+  syncButtons()
+}
+
+btnMinus.onclick = () => {
+  if (currentFontSize <= baseFontSize) return
+  // уменьшаем на один шаг и одновременно "освобождаем" лимит
+  plusClicks = Math.max(0, plusClicks - 1)
+  currentFontSize = baseFontSize + plusClicks * step
+  applyFontSize()
+  syncButtons()
+}
+
+const ws = new WebSocket("wss://bwn-live-lesson.onrender.com")
+
+ws.onopen = () => {
+  ws.send(JSON.stringify({ type:"subscribe", lessonId:"lesson-1" }))
+}
+
+ws.onmessage = e => {
+  const msg = JSON.parse(e.data)
+
+  if (msg.type === "update") {
+    codeMirror.setValue(msg.html)
+    previewFrame.srcdoc = msg.html
+    applyFontSize()
+  }
+
+  if (msg.type === "cursor") {
+    codeMirror.setSelection(msg.from, msg.to)
+    codeMirror.scrollIntoView(msg.from, 100)
+  }
+}
 </script>
 
 </body>
